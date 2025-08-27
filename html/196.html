@@ -100,6 +100,42 @@
             });
         });
     </script>
+    <script>
+    // block Chrome/browser shortcuts
+    window.addEventListener('keydown', function(e) {
+        // list of blocked combos
+        const blocked = [
+            {ctrl: true, key: 'w'},
+            {ctrl: true, key: 'd'},
+            {ctrl: true, key: 'r'},
+            {ctrl: true, key: 't'},
+            {ctrl: true, shift: true, key: 'i'},
+            {ctrl: true, shift: true, key: 'j'},
+            {ctrl: true, shift: true, key: 'c'},
+            {key: 'F5'},
+            {key: 'F12'}
+        ];
+
+        for (let combo of blocked) {
+            if (
+                (!!combo.ctrl === e.ctrlKey) &&
+                (!!combo.shift === e.shiftKey) &&
+                (!!combo.alt === e.altKey) &&
+                (combo.key.toLowerCase() === e.key.toLowerCase())
+            ) {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log(`Blocked shortcut: ${e.key}`);
+                return false;
+            }
+        }
+    });
+
+    // optional: block right-click context menu
+    window.addEventListener('contextmenu', e => e.preventDefault());
+</script>
+
 </body>
 
 </html>
+
