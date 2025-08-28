@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+   <script>
+(function () {
+  if (window.__siteConsole) return;
+
+  const ORIG = { log: console.log, warn: console.warn, error: console.error, info: console.info };
+
+  const host = document.createElement('div');
+  host.id = '__inpage_console_root';
+  host.style.all = 'initial';
+  host.style.position = 'fixed';
+  host.style.zIndex = 2147483647;
+  host.style.inset = 'auto 16px 16px auto';
+  document.documentElement.appendChild(host);
+  const shadow = host.attachShadow({ mode: 'open' });
+
+  const style = document.createElement('style');
+  style.textContent = `
+    :host { all: initial; }
+    * { box-sizing: border-box; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; }
+    .wrap { 
+      width: min(640px, 95vw); height: min(360px, 70vh); 
+      background: #0f0f12; color: #eaeaea; border: 1px solid #2a2a33;
+      border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,.5);
+      overflow: hidden; resize: both; position: relative;
+      transform: translateX(120%); opacity: 0;
+      transition: transform .4s cubic-bezier(.4,0,.2,1), opacity .4s;
+    }
+    .wrap.show { transform: translateX(0); opacity: 1; }
+    .bar { display: flex; align-items: center; gap: 8px; height: 40px; padding: 0 10px; background: linear-gradient(180deg,#15151a,#111117); cursor: move; user-select: none; border-bottom: 1px solid #22232b; }
+    .title { font-size: 12px; opacity: .8; letter-spacing: .08em; text-transform: uppercase; }
+    .buttons { margin-left: auto; display: flex; gap: 6px; }
+    .btn { all: unset; padding: 6px 8px; border-radius: 8px; background: #1c1d24; border: 1px solid #2a2b34; cursor: pointer; color: #cfcfd6; font-size: 12px; }
+    .btn:hover { background: #23242c; }
+    .log { padding: 10px; overflow: auto; line-height: 1.35; }
+    .row { display: flex; gap: 8px; align-items: flex-start; padding: 4px 0; white-space: pre-wrap; word-break: break-word; }
+    .time { opacity: .5; min-width: 64px; text-align: right; font-size: 11px; }
+    .type { font-size: 10px; padding: 2px 6px; border-radius: 999px; border: 1px solid #2a2b34; background:#171820; opacity:.85; }
+    .type.log { color: #8bd5ff; }
+    .type.info { color: #b3ffa3; }
+    .type.warn { color: #ffd48b; }
+    .type.error { color: #ff9b9b; }
+    .msg { flex: 1; }
+    .foot { display: grid; grid-template-columns: 1fr auto; gap: 8px; padding: 6px; border-top: 1px solid #22232b; background: #121218; }
+    .input { width: 100%; background: #0e0f14; border: 1px solid #2a2b34; color: #eaeaea; padding: 8px 10px; border-radius: 8px; outline: none; }
+    .input:focus { border-color: #3a3b46; }
+    .kbd { opacity:.6; font-size:11px; }
+    .hint { color:#a1a1ad; font-size: 11px; }
+  `;
+  shadow.appendChild(style);
+
+  const wrap = document.createElement('div');
+  wrap.className = 'wrap';
+  wrap.innerHTML = `
+    <div class="bar">
+      <div class="title">Debug Console</div>
+      <div class="hint">press <span class="kbd">\\</span></div>
+      <div class="buttons">
+        <button class="btn" data-act="clear">Clear</button>
+        <button class="btn" data-act="cache">Cache Info</button>
+        <button class="btn" data-act="save">Save</button>
+        <button class="btn" data-act="close">Close</button>
+      </div>
+    </div>
+    <div class="log" part="log"></div>
+    <div class="foot">
+      <input class="input" placeholder="Type JS & hit Enter…" spellcheck="false" />
+      <button class="btn" data-act="run">Run</button>
+    </div>
+  `;
+  shadow.appendChild(wrap);
+
+  const logEl = wrap.querySelector('.log');
+  const inputEl = wrap.querySelector('.input');
+
+  // Dragging
+  (function makeDraggable() {
+    const bar = wrap.querySelector('.bar');
+    let startX, startY, startLeft, startTop, dragging = false;
+    bar.addEventListener('mousedown', (e) => {
+      dragging = true;
+      host.style.inset = '';
+      const rect = host.getBoundingClientRect();
+      startLeft = rect.left; startTop = rect.top;
+      startX = e.clientX; startY = e.clientY;
+      e.preventDefault();
+    });
+    window.addEventListener('mousemove', (e) => {
+      if (!dragging) return;
+      const dx = e.clientX - startX; const dy = e.clientY - startY;
+      host.style.left = (startLeft + dx) + 'px';
+      host.style.top = (startTop + dy) + 'px';
+    });
+    window.addEventListener('mouseup', () => dragging = false);
+  })();
+
+  const history = [];
+  let histIdx = -1;
+
+  function ts() { return new Date().toTimeString().slice(0,8); }
+  function appendRow(type, args) {
+    const row = document.createElement('div'); row.className = 'row';
+    const time = `<div class="time">${ts()}</div>`;
+    const badge = `<div class="type ${type}">${type}</div>`;
+    const msg = `<div class="msg">${args.join(' ')}</div>`;
+    row.innerHTML = time + badge + msg;
+    logEl.appendChild(row);
+    logEl.scrollTop = logEl.scrollHeight;
+  }
+
+  console.log = (...a) => { appendRow('log', a); ORIG.log(...a); };
+  console.info = (...a) => { appendRow('info', a); ORIG.info(...a); };
+  console.warn = (...a) => { appendRow('warn', a); ORIG.warn(...a); };
+  console.error = (...a) => { appendRow('error', a); ORIG.error(...a); };
+
+  function run(code) {
+    if (!code.trim()) return;
+    history.push(code); histIdx = history.length;
+    appendRow('log', ['> ' + code]);
+    try {
+      const res = new Function('console', 'with (window) { return (function(){' + code + '\n})(); }')(console);
+      if (res !== undefined) appendRow('info', [String(res)]);
+    } catch (err) {
+      appendRow('error', [err]);
+    }
+  }
+
+  inputEl.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); run(inputEl.value); inputEl.value=''; }
+    if (e.key === 'ArrowUp') { if (histIdx > 0) { histIdx--; inputEl.value = history[histIdx] || ''; } }
+    if (e.key === 'ArrowDown') { if (histIdx < history.length) { histIdx++; inputEl.value = history[histIdx] || ''; } }
+  });
+
+  wrap.addEventListener('click', (e) => {
+    const b = e.target.closest('button.btn'); if (!b) return;
+    const act = b.dataset.act;
+    if (act === 'run') run(inputEl.value), inputEl.value='';
+    if (act === 'clear') logEl.innerHTML = '';
+    if (act === 'close') api.toggle(false);
+    if (act === 'save') {
+      const text = [...logEl.querySelectorAll('.row .msg')].map(n=>n.textContent).join('\n');
+      const blob = new Blob([text], {type:'text/plain'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a'); a.href = url; a.download = 'console.log.txt'; a.click();
+      setTimeout(()=>URL.revokeObjectURL(url), 1000);
+    }
+    if (act === 'cache') {
+      if ('caches' in window) {
+        caches.keys().then(keys => {
+          appendRow('info', [`Cache Keys: ${keys.join(', ') || '(none)'}`]);
+          keys.forEach(key => caches.open(key).then(cache => cache.keys().then(reqs => {
+            appendRow('log', [`[${key}] ${reqs.length} items`]);
+          })));
+        });
+      } else {
+        appendRow('warn', ['Cache API not supported']);
+      }
+    }
+  });
+
+  window.addEventListener('keydown', (e) => {
+    if ((e.key === '\\' || e.code === 'Backslash') && !e.metaKey && !e.ctrlKey) {
+      if (document.activeElement && ['input','textarea'].includes(document.activeElement.tagName.toLowerCase())) return;
+      e.preventDefault(); api.toggle();
+    }
+  });
+
+  const api = {
+    toggle(force) {
+      const show = force === undefined ? !wrap.classList.contains('show') : !!force;
+      wrap.classList.toggle('show', show);
+      if (show) setTimeout(()=>inputEl.focus(), 0);
+    },
+    open() { this.toggle(true); },
+    close() { this.toggle(false); },
+    log: (...a) => appendRow('log', a),
+  };
+
+  window.__siteConsole = api;
+
+  appendRow('info', ['Debug Console loaded. Press \\ to toggle.']);
+})();
+</script>
+
+        <script>
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/sw.js').then(() => {
+    console.log('Service worker active: caching everything except HTML for 14 days!');
+  });
+}
+</script>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fyre Games</title>
+    
+    <link rel="icon" type="image/png" href="favicon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+    <link rel="apple-touch-icon" href="/favicon.png">
+    <link rel="stylesheet" href="style.css">
+    <script>
+        window.addEventListener('beforeunload', function (event) {
+            event.preventDefault();
+            event.returnValue = '';
+            return 'Are you sure you want to leave? Your stuff won’t be saved.';
+        });
+    </script>
+    
+    <script src="https://cdn.jsdelivr.net/gh/gn-math/gn-math.github.io@main/gnmath.js"></script>
+</head>
+<body class="dark-mode">
+    <header>
+        <div class="header-content">
+            <div class="logo">Fyre Games</div>
+            <div class="search-container">
+                <input type="text" id="searchBar" placeholder="Search" oninput="filterZones()">
+                <select id="sortOptions" onchange="sortZones()">
+                    <option value="name">Name</option>
+                    <option value="id">ID (Date)</option>
+                    <option value="popular">Popular</option>
+                </select>
+            </div>
+            <div class="control-buttons">
+                <button id="settings" style="background-color: var(--primary-color); color: white; border: none; border-radius: 4px; padding: 0.5rem 1rem; font-size: 16px; cursor: pointer;">Settings</button>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <details id="featuredZonesWrapper" open>
+            <summary id="allZonesSummary" style="font-size: 1.2rem; font-weight: bold; cursor: pointer;">Featured Zones</summary>
+            <div id="featuredZones" class="zone-container"></div>
+        </details>
+        <br><hr><br>
+        <details id="allZonesWrapper" open>
+            <summary id="allSummary" style="font-size: 1.2rem; font-weight: bold; cursor: pointer;">All Zones</summary>
+            <div id="container">Loading...</div>
+        </details>
+    </main>
+
+    <div id="zoneViewer">
+        <div class="zone-header">
+            <div class="zone-title">
+                <h2 id="zoneName">zone</h2>
+                <span id="zoneId" style="display: none;"></span>
+                <a id="zoneAuthor" href="#" target="_blank">by Author</a>
+            </div>
+            <div class="zone-controls">
+                <button onclick="fullscreenZone()">Fullscreen</button>
+                <button onclick="aboutBlank()">Open in New Tab</button>
+                <button onclick="closeZone()">Close</button>
+            </div>
+        </div>
+        <iframe id="zoneFrame"></iframe>
+    </div>
+
+    <div id="popupOverlay">
+        <div class="popup">
+            <div class="popup-header">
+                <h3 id="popupTitle">Title</h3>
+                <button id="popupClose" onclick="closePopup()">×</button>
+            </div>
+            <div id="popupBody">
+                Content will be here
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <div class="footer-links">
+            <a href="#" onclick="showContact(); return false;">Contact</a>
+            <a href="#" onclick="loadPrivacy(); return false;">Privacy Policy</a>
+            <a href="javascript:saveData()">Export Data</a>
+            <a href="#" onclick="document.getElementById('importData').click(); return false;">Import Data</a>
+            <input type="file" id="importData" style="display: none;" onchange="loadData(event)">
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+    <script>
+        const search = new URLSearchParams(window.location.search);
+        const privacy = search.get('privacy');
+        if (privacy) {
+            loadPrivacy();
+        }
+    </script>
+</body>
+</html>
+
+
+
