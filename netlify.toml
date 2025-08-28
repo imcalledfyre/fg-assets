@@ -1,7 +1,25 @@
+# ✅ Global CORS for everything
 [[headers]]
   for = "/*"
   [headers.values]
     Access-Control-Allow-Origin = "*"
     Access-Control-Allow-Methods = "GET"
     Service-Worker-Allowed = "/"
-    Cache-Control = "public, max-age=31536000, immutable"
+
+# ✅ HTML: No aggressive caching (always fetch latest)
+[[headers]]
+  for = "/*.html"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+
+# ✅ CSS: Update frequently (1 day, optional tweak)
+[[headers]]
+  for = "/*.css"
+  [headers.values]
+    Cache-Control = "public, max-age=86400, must-revalidate"
+
+# ✅ Everything else (JS, images, Unity, assets): 30 days cache
+[[headers]]
+  for = "/*"
+  [headers.values]
+    Cache-Control = "public, max-age=2592000, immutable"
