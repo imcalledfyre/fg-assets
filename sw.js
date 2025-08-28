@@ -1,6 +1,6 @@
 // sw.js
-const CACHE_NAME = 'fyre-games-cache-v1';
-const MAX_AGE = 30 * 24 * 60 * 60 * 1000;
+const CACHE_NAME = 'fyre-games-cache-v2';
+const MAX_AGE = 30 * 24 * 60 * 60 * 1000; // 30 days
 
 self.addEventListener('install', e => self.skipWaiting());
 self.addEventListener('activate', e => e.waitUntil(clients.claim()));
@@ -9,28 +9,32 @@ self.addEventListener('fetch', e => {
     const req = e.request;
     if (req.method !== 'GET') return;
 
+    const isCrossOrigin = !req.url.startsWith(self.location.origin);
+
     e.respondWith(
         caches.open(CACHE_NAME).then(cache =>
             cache.match(req).then(cached => {
                 if (cached) {
-                    // Only use MAX_AGE for same-origin stuff
-                    if (req.url.startsWith(self.location.origin)) {
+                    // Same-origin: respect MAX_AGE
+                    if (!isCrossOrigin) {
                         const fetchedTime = cached.headers.get('sw-fetched-time');
-                        if (!fetchedTime || (Date.now() - Number(fetchedTime)) < MAX_AGE) {
-                            console.log('[SW] Cache hit:', req.url);
+                        if (fetchedTime && (Date.now() - Number(fetchedTime)) < MAX_AGE) {
+                            console.log('[SW] Cache hit (same-origin, fresh):', req.url);
                             return cached;
                         }
                     } else {
+                        // Cross-origin: always serve cached
                         console.log('[SW] Cross-origin cache hit:', req.url);
-                        return cached; // jsDelivr hits
+                        return cached;
                     }
                 }
 
+                // Not cached / stale → fetch
                 return fetch(req).then(resp => {
                     if (!resp || resp.status !== 200) return resp;
 
-                    if (resp.type === 'basic') {
-                        // Same-origin: add sw-fetched-time
+                    if (!isCrossOrigin && resp.type === 'basic') {
+                        // Same-origin: store with timestamp
                         const respClone = resp.clone();
                         const headers = new Headers(respClone.headers);
                         headers.append('sw-fetched-time', Date.now());
@@ -41,8 +45,9 @@ self.addEventListener('fetch', e => {
                         });
                         cache.put(req, responseWithHeader);
                     } else {
-                        // Opaque / cross-origin (jsDelivr)
-                        cache.put(req, resp.clone());
+                        // Cross-origin: opaque / CDN → cache aggressively
+                        try { cache.put(req, resp.clone()); } 
+                        catch(e) { console.warn('[SW] Could not cache (opaque?):', req.url); }
                     }
 
                     console.log('[SW] Fetched & cached:', req.url);
