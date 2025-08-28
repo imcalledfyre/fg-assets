@@ -2,52 +2,9 @@
 <html lang="en-us">
 <script>
 if ('serviceWorker' in navigator) {
-  const swCode = `
-    const CACHE_NAME = 'game-cache-v1';
-    const MAX_AGE = 30 * 24 * 60 * 60 * 1000; // 30 days in ms
-
-    self.addEventListener('install', event => {
-      self.skipWaiting();
-      console.log('[SW] Installed');
-    });
-
-    self.addEventListener('activate', event => {
-      event.waitUntil(clients.claim());
-      console.log('[SW] Activated');
-    });
-
-    self.addEventListener('fetch', event => {
-      const req = event.request;
-
-      event.respondWith(
-        caches.open(CACHE_NAME).then(cache =>
-          cache.match(req).then(cached => {
-            // Serve cached if it exists
-            if (cached) {
-              return cached;
-            }
-
-            // Otherwise fetch and cache
-            return fetch(req).then(resp => {
-              // Always cache, even opaque
-              const respClone = resp.clone();
-              cache.put(req, respClone);
-              console.log('[SW] Fetched & cached:', req.url);
-              return resp;
-            }).catch(() => cached || new Response('Offline', {status: 503}));
-          })
-        )
-      );
-    });
-  `;
-
-  // Convert string to Blob for inline registration
-  const blob = new Blob([swCode], { type: 'application/javascript' });
-  const swURL = URL.createObjectURL(blob);
-
-  navigator.serviceWorker.register(swURL)
-    .then(() => console.log('Service worker active: caching everything for 30 days!'))
-    .catch(err => console.error('SW registration failed:', err));
+    navigator.serviceWorker.register('/sw.js') // note the leading slash
+        .then(() => console.log('Service worker active: caching everything for 30 days!'))
+        .catch(err => console.error('SW registration failed:', err));
 }
 </script>
 
