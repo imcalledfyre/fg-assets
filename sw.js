@@ -19,9 +19,19 @@ self.addEventListener('activate', (event) => {
       if (!dateHeader) continue;
 
       const age = now - new Date(dateHeader).getTime();
-      const isHTML = request.url.includes('/html/') && request.url.endsWith('.html');
+      const url = new URL(request.url);
+      const isHTML = url.pathname.startsWith('/html/') && url.pathname.endsWith('.html');
+      const isZonesJS = url.pathname.endsWith('/zones.js');
+      const isPNG = url.pathname.endsWith('.png');
+      const isUnityWeb = /\.(data|wasm|framework\.js|unityweb)$/.test(url.pathname);
 
-      if ((isHTML && age > HTML_MAX_AGE) || (!isHTML && age > ASSET_MAX_AGE)) {
+      if (
+        (isHTML && age > HTML_MAX_AGE) ||
+        (isZonesJS && age > HTML_MAX_AGE) ||
+        (isPNG && age > ASSET_MAX_AGE) ||
+        (isUnityWeb && age > ASSET_MAX_AGE) ||
+        (!isHTML && !isZonesJS && !isPNG && !isUnityWeb && age > ASSET_MAX_AGE)
+      ) {
         await cache.delete(request);
       }
     }
@@ -31,6 +41,9 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
   const isHTMLPage = url.pathname.startsWith('/html/') && url.pathname.endsWith('.html');
+  const isZonesJS = url.pathname.endsWith('/zones.js');
+  const isPNG = url.pathname.endsWith('.png');
+  const isUnityWeb = /\.(data|wasm|framework\.js|unityweb)$/.test(url.pathname);
 
   event.respondWith(
     caches.open(CACHE_NAME).then(async (cache) => {
@@ -38,8 +51,7 @@ self.addEventListener('fetch', (event) => {
       try {
         const networkRes = await fetch(event.request);
         if (networkRes && networkRes.status === 200) {
-          // Cache HTML pages on visit
-          if (isHTMLPage || event.request.destination !== 'document') {
+          if (isHTMLPage || isZonesJS || isPNG || isUnityWeb || event.request.destination !== 'document') {
             cache.put(event.request, networkRes.clone());
           }
         }
