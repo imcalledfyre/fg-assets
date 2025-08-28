@@ -150,5 +150,146 @@
     </script>
     
 </body>
+<!-- UNIVERSAL UNITY LOADING OVERLAY -->
+<script>
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/sw.js') // note the leading slash
+        .then(() => console.log('Service worker active: caching everything for 30 days!'))
+        .catch(err => console.error('SW registration failed:', err));
+}
+</script>
+
+<style>
+#fancy-loader-overlay {
+  position: fixed;
+  inset: 0;
+  background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+  z-index: 999999;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-family: 'Segoe UI', sans-serif;
+}
+#fancy-loader-title {
+  font-size: 42px;
+  margin-bottom: 20px;
+  text-shadow: 0 0 8px rgba(255,255,255,0.7);
+}
+#fancy-progress-container {
+  width: 60%;
+  max-width: 500px;
+  background: rgba(255,255,255,0.15);
+  border-radius: 10px;
+  overflow: hidden;
+  margin-bottom: 12px;
+}
+#fancy-progress-bar {
+  height: 24px;
+  width: 0%;
+  background: linear-gradient(90deg, #00d2ff, #3a7bd5);
+  background-size: 200% 100%;
+  animation: moveGradient 2s linear infinite;
+  transition: width 0.25s ease-out;
+}
+@keyframes moveGradient {
+  0% {background-position:0% 50%}
+  100% {background-position:200% 50%}
+}
+#fancy-status { font-size: 18px; }
+</style>
+
+<div id="fancy-loader-overlay">
+  <div id="fancy-loader-title">Loading…</div>
+  <div id="fancy-progress-container">
+    <div id="fancy-progress-bar"></div>
+  </div>
+  <div id="fancy-status">Preparing files…</div>
+</div>
+
+<script>
+(() => {
+  const overlay = document.getElementById('fancy-loader-overlay');
+  const titleEl = document.getElementById('fancy-loader-title');
+  const barEl = document.getElementById('fancy-progress-bar');
+  const statusEl = document.getElementById('fancy-status');
+
+  // Get game name from <title>
+  const gameName = (document.title.split('|')[1] || 'Game').trim();
+  titleEl.textContent = `Loading ${gameName}…`;
+
+  let totalBytes = 0, loadedBytes = 0, swHits = 0, startTime = performance.now();
+
+  // Track SW cache hits if they log
+  const origLog = console.log;
+  console.log = (...args) => {
+    if (args.join(' ').includes('[SW] Cross-origin cache hit')) swHits++;
+    origLog.apply(console, args);
+  };
+
+  const formatMB = b => (b/(1024*1024)).toFixed(2);
+  const formatETA = () => {
+    const elapsed = (performance.now()-startTime)/1000;
+    const rate = loadedBytes/elapsed;
+    const remain = (totalBytes - loadedBytes)/rate;
+    return remain > 0 ? `${remain.toFixed(1)}s` : '0s';
+  };
+
+  // Intercept fetch() for .part files
+  const origFetch = window.fetch;
+  window.fetch = async (...args) => {
+    const url = args[0];
+    const res = await origFetch(...args);
+    if (res.body && url.includes('.part')) {
+      const reader = res.body.getReader();
+      const chunks = [];
+      while (true) {
+        const {done,value} = await reader.read();
+        if (done) break;
+        loadedBytes += value.length;
+        const percent = totalBytes ? (loadedBytes/totalBytes)*100 : 0;
+        barEl.style.width = percent.toFixed(1) + '%';
+        const mbDone = formatMB(loadedBytes);
+        const mbTotal = totalBytes ? formatMB(totalBytes) : '?';
+        statusEl.textContent = (swHits > 5)
+          ? `Launching from local data… ${mbDone} / ${mbTotal} MB (${percent.toFixed(1)}%) ETA ${formatETA()}`
+          : `Downloading… ${mbDone} / ${mbTotal} MB (${percent.toFixed(1)}%) ETA ${formatETA()}`;
+        chunks.push(value);
+      }
+      return new Response(new Blob(chunks), res);
+    }
+    return res;
+  };
+
+  // Try to find all .part file URLs and get their sizes
+  window.addEventListener('load', async () => {
+    const partUrls = [];
+    document.querySelectorAll('*').forEach(el=>{
+      ['src','href'].forEach(attr=>{
+        const v = el.getAttribute && el.getAttribute(attr);
+        if (v && v.includes('.part')) partUrls.push(v);
+      });
+    });
+    const uniqueParts = [...new Set(partUrls)];
+    const sizes = await Promise.all(uniqueParts.map(u =>
+      fetch(u, {method:"HEAD"}).then(r=>+r.headers.get('Content-Length')||0).catch(()=>0)
+    ));
+    totalBytes = sizes.reduce((a,b)=>a+b,0);
+    if (totalBytes > 1024*1024) alert("Tip: This game is large. Close other tabs to help Chrome avoid crashing.");
+  });
+
+  // Watch for Unity canvas/container to appear and remove overlay
+  const obs = new MutationObserver(() => {
+    const canvas = document.querySelector('#unity-canvas, #unityContainer, canvas');
+    if (canvas && (canvas.style.display === 'block' || canvas.style.visibility !== 'hidden')) {
+      overlay.remove();
+      obs.disconnect();
+    }
+  });
+  obs.observe(document.body, {subtree:true, attributes:true, attributeFilter:['style','hidden']});
+})();
+</script>
+
 
 </html>

@@ -28,101 +28,21 @@
 
     </style>
 </head>
-<style>
-/* Overall page background */
-body {
-  background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
-  margin: 0;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  color: white;
-  overflow: hidden;
-}
-
-/* Loading text styling */
-#loading-text {
-  font-size: 48px;
-  font-family: 'Pacifico', cursive;
-  text-align: center;
-  margin-top: 40px;
-  letter-spacing: 2px;
-  text-shadow: 0 0 8px rgba(255,255,255,0.7);
-  animation: pulse 1.5s infinite;
-}
-
-@keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.5; }
-}
-
-/* Loading bar container */
-#unity-loading-bar {
-  width: 60%;
-  max-width: 600px;
-  margin: 30px auto;
-  background: rgba(255,255,255,0.1);
-  border-radius: 12px;
-  padding: 4px;
-  box-shadow: 0 0 10px rgba(0,0,0,0.5) inset;
-}
-
-/* Empty track */
-#unity-progress-bar-empty {
-  width: 100%;
-  height: 24px;
-  background: rgba(255,255,255,0.15);
-  border-radius: 10px;
-  overflow: hidden;
-}
-
-/* Full bar with gradient animation */
-#unity-progress-bar-full {
-  height: 100%;
-  width: 0%;
-  background: linear-gradient(90deg, #00d2ff, #3a7bd5);
-  border-radius: 10px;
-  transition: width 0.25s ease-out;
-  background-size: 200% 100%;
-  animation: moveGradient 2s linear infinite;
-}
-
-@keyframes moveGradient {
-  0% { background-position: 0% 50%; }
-  100% { background-position: 200% 50%; }
-}
-
-/* Mobile warning */
-#unity-mobile-warning {
-  background: rgba(255, 75, 75, 0.9);
-  padding: 10px;
-  margin: 15px auto;
-  text-align: center;
-  font-weight: bold;
-  border-radius: 8px;
-  max-width: 400px;
-  box-shadow: 0 0 8px rgba(255,0,0,0.6);
-}
-
-/* Canvas fills remaining space */
-#unity-canvas {
-  display: block;
-  margin: 0 auto;
-  background: black;
-}
-</style>
-
 <script>
 if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('/sw.js')
+    navigator.serviceWorker.register('/sw.js') // note the leading slash
         .then(() => console.log('Service worker active: caching everything for 30 days!'))
         .catch(err => console.error('SW registration failed:', err));
 }
 </script>
-
 <body>
-    <div id="loading-text">LOADING...</div>
+    <div id="loading-text" style="color: white; font-size: 48px; font-family: cursive; text-align: center; margin-top: 20px;">
+        LOADING...
+    </div>
     <div hidden id="unity-container" class="unity-desktop">
         <canvas id="unity-canvas"></canvas>
         <div id="unity-loading-bar">
+            <div id="unity-logo"></div>
             <div id="unity-progress-bar-empty">
                 <div id="unity-progress-bar-full"></div>
             </div>
@@ -130,13 +50,13 @@ if ('serviceWorker' in navigator) {
         <div id="unity-mobile-warning">WebGL builds are not supported on mobile devices.</div>
     </div>
 
-    <!-- Your existing loader script below (unchanged logic) -->
     <script>
     (async () => {
         const loadingText = document.querySelector("#loading-text");
         const progressBarFull = document.querySelector("#unity-progress-bar-full");
         let totalBytes = 0, loadedBytes = 0, swHits = 0;
 
+        // Monitor console for SW cache hits
         const origLog = console.log;
         console.log = (...args) => {
             if (args.join(" ").includes("[SW] Cross-origin cache hit")) {
@@ -267,7 +187,10 @@ if ('serviceWorker' in navigator) {
                 canvas.style.display = "block";
             }).catch(alert);
         };
-       
+        document.body.appendChild(script);
+    })();
+    </script>
+</body>
 
 
 </html>
