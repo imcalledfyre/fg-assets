@@ -1,12 +1,5 @@
 <!DOCTYPE html>
 <html lang="en-us">
-<script>
-if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('/sw.js') // note the leading slash
-        .then(() => console.log('Service worker active: caching everything for 30 days!'))
-        .catch(err => console.error('SW registration failed:', err));
-}
-</script>
 
 <head>
     <base href="https://cdn.jsdelivr.net/gh/web-ports/hollow-knight@main/">
@@ -35,9 +28,17 @@ if ('serviceWorker' in navigator) {
 
     </style>
 </head>
-
+<script>
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/sw.js') // note the leading slash
+        .then(() => console.log('Service worker active: caching everything for 30 days!'))
+        .catch(err => console.error('SW registration failed:', err));
+}
+</script>
 <body>
-    <div id="loading-text" style="color: white; font-size: 48px; font-family: cursive; text-align: center; margin-top: 20px;"> LOADING... </div>
+    <div id="loading-text" style="color: white; font-size: 48px; font-family: cursive; text-align: center; margin-top: 20px;">
+        LOADING...
+    </div>
     <div hidden id="unity-container" class="unity-desktop">
         <canvas id="unity-canvas"></canvas>
         <div id="unity-loading-bar">
@@ -46,41 +47,62 @@ if ('serviceWorker' in navigator) {
                 <div id="unity-progress-bar-full"></div>
             </div>
         </div>
-        <div id="unity-mobile-warning"> WebGL builds are not supported on mobile devices. </div>
+        <div id="unity-mobile-warning">WebGL builds are not supported on mobile devices.</div>
     </div>
+
     <script>
-        var loadingText = document.querySelector("#loading-text");
-        let totalBytes = 0;
-        let loadedBytes = 0;
+    (async () => {
+        const loadingText = document.querySelector("#loading-text");
+        const progressBarFull = document.querySelector("#unity-progress-bar-full");
+        let totalBytes = 0, loadedBytes = 0, swHits = 0;
+
+        // Monitor console for SW cache hits
+        const origLog = console.log;
+        console.log = (...args) => {
+            if (args.join(" ").includes("[SW] Cross-origin cache hit")) {
+                swHits++;
+            }
+            origLog.apply(console, args);
+        };
+
+        function formatMB(bytes) {
+            return (bytes / (1024 * 1024)).toFixed(2);
+        }
+        function formatETA(loaded, total, start) {
+            const elapsed = (performance.now() - start) / 1000;
+            const rate = loaded / elapsed;
+            const remaining = (total - loaded) / rate;
+            return remaining > 0 ? `${remaining.toFixed(1)}s` : "0s";
+        }
         async function getSize(url) {
             try {
-                const res = await fetch(url, {
-                    method: "HEAD"
-                });
+                const res = await fetch(url, { method: "HEAD" });
                 return parseInt(res.headers.get("Content-Length") || "0", 10);
             } catch {
                 return 0;
             }
         }
-        async function fetchWithProgress(url) {
-            const response = await fetch(url);
-            const reader = response.body.getReader();
-            let chunks = [];
-            let received = 0;
+        async function fetchWithProgress(url, startTime) {
+            const res = await fetch(url);
+            const reader = res.body.getReader();
+            let chunks = [], received = 0;
             while (true) {
-                const {
-                    done,
-                    value
-                } = await reader.read();
+                const { done, value } = await reader.read();
                 if (done) break;
                 received += value.length;
                 loadedBytes += value.length;
                 chunks.push(value);
-                let mbDone = (loadedBytes / (1024 * 1024)).toFixed(2);
-                let mbTotal = '909.17';
-                loadingText.textContent = `LOADING... ${mbDone} MB / ${mbTotal} MB`;
+
+                const mbDone = formatMB(loadedBytes);
+                const mbTotal = formatMB(totalBytes);
+                const percent = ((loadedBytes / totalBytes) * 100).toFixed(1);
+                const eta = formatETA(loadedBytes, totalBytes, startTime);
+                progressBarFull.style.width = percent + "%";
+                loadingText.textContent = (swHits > 5)
+                    ? `Launching from local data… ${mbDone} / ${mbTotal} MB (${percent}%) ETA ${eta}`
+                    : `Downloading… ${mbDone} / ${mbTotal} MB (${percent}%) ETA ${eta}`;
             }
-            let fullBuffer = new Uint8Array(received);
+            const fullBuffer = new Uint8Array(received);
             let offset = 0;
             for (let chunk of chunks) {
                 fullBuffer.set(chunk, offset);
@@ -88,88 +110,87 @@ if ('serviceWorker' in navigator) {
             }
             return fullBuffer.buffer;
         }
-        async function mergeFiles(fileParts) {
-            const buffers = await Promise.all(fileParts.map(part => fetchWithProgress(part)));
-            const mergedBlob = new Blob(buffers);
-            return URL.createObjectURL(mergedBlob);
+        async function mergeFiles(parts, startTime) {
+            const buffers = await Promise.all(parts.map(p => fetchWithProgress(p, startTime)));
+            return URL.createObjectURL(new Blob(buffers));
+        }
+        function getParts(file, start, end) {
+            return Array.from({ length: end - start + 1 }, (_, i) => `${file}.part${start + i}`);
         }
 
-        function getParts(file, start, end) {
-            let parts = [];
-            for (let i = start; i <= end; i++) {
-                parts.push(file + ".part" + i);
-            }
-            return parts;
+        const allParts = [
+            ...getParts("Build/bog.data", 1, 44),
+            ...getParts("Build/bog.wasm", 1, 2)
+        ];
+        const sizes = await Promise.all(allParts.map(getSize));
+        totalBytes = sizes.reduce((a, b) => a + b, 0);
+
+        if (totalBytes > 1024 * 1024) {
+            alert("Tip: This game is large. Close other tabs to help Chrome avoid crashing.");
         }
-        (async () => {
-            const allParts = [...getParts("Build/bog.data", 1, 44), ...getParts("Build/bog.wasm", 1, 2), ];
-            const sizes = await Promise.all(allParts.map(getSize));
-            totalBytes = sizes.reduce((a, b) => a + b, 0);
-            const [dataUrl, wasmurl] = await Promise.all([
-                mergeFiles(getParts("Build/bog.data", 1, 44)),
-                mergeFiles(getParts("Build/bog.wasm", 1, 2)),
-            ]);
-            var buildUrl = "Build";
-            var loaderUrl = buildUrl + "/bog.loader.js";
-            var config = {
-                dataUrl: dataUrl,
-                frameworkUrl: buildUrl + "/bog.framework.js",
-                codeUrl: wasmurl,
-                streamingAssetsUrl: "StreamingAssets",
-                companyName: "Team Cherry & Truffled",
-                productName: "Hollow Knight",
-                productVersion: "1.0",
-            };
-            var container = document.querySelector("#unity-container");
-            container.hidden = false;
-            var canvas = document.querySelector("#unity-canvas");
-            var loadingBar = document.querySelector("#unity-loading-bar");
-            var progressBarFull = document.querySelector("#unity-progress-bar-full");
-            var fullscreenButton = document.querySelector("#unity-fullscreen-button");
-            var mobileWarning = document.querySelector("#unity-mobile-warning");
-            if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
-                container.className = "unity-mobile";
-                config.devicePixelRatio = 1;
-                mobileWarning.style.display = "block";
-                setTimeout(() => {
-                    mobileWarning.style.display = "none";
-                }, 5000);
-            } else {
-              if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
-                var meta = document.createElement('meta');
-                meta.name = 'viewport';
-                meta.content = 'width=device-width, height=device-height, initial-scale=1.0, user-scalable=no, shrink-to-fit=yes';
-                document.getElementsByTagName('head')[0].appendChild(meta);
-                container.className = "unity-mobile";
-                canvas.className = "unity-mobile";
-            } else {
-                function resizeCanvas() {
-                    canvas.width = window.innerWidth;
-                    canvas.height = window.innerHeight;
-                    canvas.style.width = window.innerWidth + "px";
-                    canvas.style.height = window.innerHeight + "px";
-                }
-                resizeCanvas();
-                window.addEventListener('resize', resizeCanvas);
+
+        const startTime = performance.now();
+        const [dataUrl, wasmUrl] = await Promise.all([
+            mergeFiles(getParts("Build/bog.data", 1, 44), startTime),
+            mergeFiles(getParts("Build/bog.wasm", 1, 2), startTime),
+        ]);
+
+        const buildUrl = "Build";
+        const loaderUrl = buildUrl + "/bog.loader.js";
+        const config = {
+            dataUrl: dataUrl,
+            frameworkUrl: buildUrl + "/bog.framework.js",
+            codeUrl: wasmUrl,
+            streamingAssetsUrl: "StreamingAssets",
+            companyName: "Team Cherry & Truffled",
+            productName: "Hollow Knight",
+            productVersion: "1.0"
+        };
+
+        const container = document.querySelector("#unity-container");
+        const canvas = document.querySelector("#unity-canvas");
+        const loadingBar = document.querySelector("#unity-loading-bar");
+        const mobileWarning = document.querySelector("#unity-mobile-warning");
+
+        if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
+            const meta = document.createElement('meta');
+            meta.name = 'viewport';
+            meta.content = 'width=device-width, height=device-height, initial-scale=1.0, user-scalable=no, shrink-to-fit=yes';
+            document.head.appendChild(meta);
+            container.className = "unity-mobile";
+            config.devicePixelRatio = 1;
+            canvas.className = "unity-mobile";
+            mobileWarning.style.display = "block";
+            setTimeout(() => { mobileWarning.style.display = "none"; }, 5000);
+        } else {
+            function resizeCanvas() {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+                canvas.style.width = window.innerWidth + "px";
+                canvas.style.height = window.innerHeight + "px";
             }
-            }
-            loadingBar.style.display = "block";
-            var script = document.createElement("script");
-            script.src = loaderUrl;
-            script.onload = () => {
-                createUnityInstance(canvas, config, (progress) => {
-                    progressBarFull.style.width = 100 * progress + "%";
-                }).then((unityInstance) => {
-                  loadingText.remove();
-                    loadingBar.style.display = "none";
-                    canvas.style.display = "block";
-                }).catch((message) => {
-                    alert(message);
-                });
-            };
-            document.body.appendChild(script);
-        })();
+            resizeCanvas();
+            window.addEventListener('resize', resizeCanvas);
+        }
+
+        container.hidden = false;
+        loadingBar.style.display = "block";
+
+        const script = document.createElement("script");
+        script.src = loaderUrl;
+        script.onload = () => {
+            createUnityInstance(canvas, config, (progress) => {
+                progressBarFull.style.width = (progress * 100) + "%";
+            }).then(() => {
+                loadingText.remove();
+                loadingBar.style.display = "none";
+                canvas.style.display = "block";
+            }).catch(alert);
+        };
+        document.body.appendChild(script);
+    })();
     </script>
 </body>
+
 
 </html>
