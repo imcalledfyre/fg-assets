@@ -148,12 +148,10 @@
             resizeCanvas();
         })();
     </script>
-    
-</body>
-<!-- UNIVERSAL UNITY LOADING OVERLAY -->
+    <!-- UNIVERSAL UNITY LOADING OVERLAY -->
 <script>
 if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('/sw.js') // note the leading slash
+    navigator.serviceWorker.register('/sw.js')
         .then(() => console.log('Service worker active: caching everything for 30 days!'))
         .catch(err => console.error('SW registration failed:', err));
 }
@@ -198,6 +196,17 @@ if ('serviceWorker' in navigator) {
   100% {background-position:200% 50%}
 }
 #fancy-status { font-size: 18px; }
+
+/* Force-hide any old Unity loader UI */
+#loading-text,
+#unity-loading-bar,
+.loading,
+.spinner,
+[id*="loading"],
+[class*="loading"] {
+  display: none !important;
+  visibility: hidden !important;
+}
 </style>
 
 <div id="fancy-loader-overlay">
@@ -210,18 +219,19 @@ if ('serviceWorker' in navigator) {
 
 <script>
 (() => {
+  // Remove any existing loader elements immediately
+  document.querySelectorAll('#loading-text, #unity-loading-bar, .loading, .spinner, [id*="loading"], [class*="loading"]').forEach(el => el.remove());
+
   const overlay = document.getElementById('fancy-loader-overlay');
   const titleEl = document.getElementById('fancy-loader-title');
   const barEl = document.getElementById('fancy-progress-bar');
   const statusEl = document.getElementById('fancy-status');
 
-  // Get game name from <title>
   const gameName = (document.title.split('|')[1] || 'Game').trim();
   titleEl.textContent = `Loading ${gameName}…`;
 
   let totalBytes = 0, loadedBytes = 0, swHits = 0, startTime = performance.now();
 
-  // Track SW cache hits if they log
   const origLog = console.log;
   console.log = (...args) => {
     if (args.join(' ').includes('[SW] Cross-origin cache hit')) swHits++;
@@ -236,7 +246,6 @@ if ('serviceWorker' in navigator) {
     return remain > 0 ? `${remain.toFixed(1)}s` : '0s';
   };
 
-  // Intercept fetch() for .part files
   const origFetch = window.fetch;
   window.fetch = async (...args) => {
     const url = args[0];
@@ -262,7 +271,6 @@ if ('serviceWorker' in navigator) {
     return res;
   };
 
-  // Try to find all .part file URLs and get their sizes
   window.addEventListener('load', async () => {
     const partUrls = [];
     document.querySelectorAll('*').forEach(el=>{
@@ -279,7 +287,6 @@ if ('serviceWorker' in navigator) {
     if (totalBytes > 1024*1024) alert("Tip: This game is large. Close other tabs to help Chrome avoid crashing.");
   });
 
-  // Watch for Unity canvas/container to appear and remove overlay
   const obs = new MutationObserver(() => {
     const canvas = document.querySelector('#unity-canvas, #unityContainer, canvas');
     if (canvas && (canvas.style.display === 'block' || canvas.style.visibility !== 'hidden')) {
@@ -290,6 +297,8 @@ if ('serviceWorker' in navigator) {
   obs.observe(document.body, {subtree:true, attributes:true, attributeFilter:['style','hidden']});
 })();
 </script>
+
+</body>
 
 
 </html>
