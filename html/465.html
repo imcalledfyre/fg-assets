@@ -1,12 +1,7 @@
+
 <!DOCTYPE html>
 <html lang="en-us">
-<script>
-if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('/sw.js') // note the leading slash
-        .then(() => console.log('Service worker active: caching everything for 30 days!'))
-        .catch(err => console.error('SW registration failed:', err));
-}
-</script>
+
 <head>
     <base href="https://cdn.jsdelivr.net/gh/web-ports/cuphead@main/">
     <meta charset="utf-8">
@@ -36,6 +31,14 @@ if ('serviceWorker' in navigator) {
 <body>
     <div id="loading-text" style="color: white; font-size: 48px; font-family: cursive; text-align: center; margin-top: 20px;"> LOADING... </div>
     <div id="unityContainer"></div>
+    <script>
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/sw.js') // note the leading slash
+        .then(() => console.log('Service worker active: caching everything for 30 days!'))
+        .catch(err => console.error('SW registration failed:', err));
+}
+</script>
+
     <script src="Build/UnityLoader.js"></script>
     <script>
         var loadingText = document.querySelector("#loading-text");
@@ -66,7 +69,7 @@ if ('serviceWorker' in navigator) {
                 chunks.push(value);
     
                 let mbDone = (loadedBytes / (1024 * 1024)).toFixed(2);
-                let mbTotal = (totalBytes / (1024 * 1024)).toFixed(2);
+                let mbTotal = '2127.52';
                 loadingText.textContent = `LOADING... ${mbDone} MB / ${mbTotal} MB`;
             }
     
@@ -124,7 +127,7 @@ if ('serviceWorker' in navigator) {
                 "asmCodeUrl": asmurl,
                 "asmMemoryUrl": "Build.asm.memory.unityweb",
                 "asmFrameworkUrl": "Build.asm.framework.unityweb",
-                "TOTAL_MEMORY": 268435456,
+                "TOTAL_MEMORY": 100000000,
                 "graphicsAPI": ["WebGL 2.0"],
                 "webglContextAttributes": { "preserveDrawingBuffer": false },
                 "splashScreenStyle": "Dark",
@@ -156,6 +159,5 @@ if ('serviceWorker' in navigator) {
     </script>
     
 </body>
-
 
 </html>
