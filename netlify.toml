@@ -3,3 +3,5 @@
   [headers.values]
     Access-Control-Allow-Origin = "*"
     Access-Control-Allow-Methods = "GET"
+    Service-Worker-Allowed = "/"
+    Cache-Control = "public, max-age=31536000, immutable"
