@@ -5,12 +5,12 @@ const searchBar = document.getElementById('searchBar');
 const sortOptions = document.getElementById('sortOptions');
 // https://www.jsdelivr.com/tools/purge
 const zonesurls = [
-    "https://v4assets.netlify.app/zones.json",
+    "/zones.json",
     "https://fyreassets67.vonar.ch/zones.json"
 ];
 let zonesURL = zonesurls[Math.floor(Math.random() * zonesurls.length)];
 const coverURL = "https://cdn.jsdelivr.net/gh/gn-math/covers@main";
-const htmlURL = "https://fyreassets67.vonar.ch/html";
+const htmlURL = "/html";
 let zones = [];
 let popularityData = {};
 const featuredContainer = document.getElementById('featuredZones');
@@ -25,7 +25,7 @@ async function listZones() {
             const shajson = await sharesponse.json();
             const sha = shajson[0]['sha'];
             if (sha) {
-                zonesURL = `https://cdn.jsdelivr.net/gh/imcalledfyre/fg-assets@${sha}/zones.json`;
+                zonesURL = `/zones.json`;
             }
           } catch (error) {}
         }
