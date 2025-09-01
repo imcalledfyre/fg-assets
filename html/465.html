@@ -1,6 +1,3 @@
-Okay, I've integrated the downloading progress and service worker implementation from the "Hollow Knight" example into your "Cuphead" code. Here's the modified code:
-
-```html
 <!DOCTYPE html>
 <html lang="en-us">
 
@@ -219,26 +216,3 @@ Okay, I've integrated the downloading progress and service worker implementation
 </body>
 
 </html>
-```
-
-**Key Changes and Explanations:**
-
-1.  **Progress Bar CSS:** Added CSS to create and style a progress bar.
-2.  **Progress Bar HTML:** Added HTML elements for the progress bar (`#unity-loading-bar`, `#unity-progress-bar-empty`, `#unity-progress-bar-full`).
-3.  **Loading Text and Progress Bar:** The code now updates the loading text with the download progress, and the progress bar visually indicates the download progress.
-4.  **`formatMB`, `formatETA` functions:** Added utility functions to format the download size in MB and calculate the estimated time remaining.
-5.  **`fetchWithProgress` function:** This function is the core of the progress tracking. It fetches the files, reads them in chunks, and updates the `loadedBytes` and the progress bar accordingly.
-6.  **`mergeFiles` function:** This function now takes a `startTime` argument and passes it to `fetchWithProgress`.
-7.  **`getSize` function:** This function gets the size of each file using the `HEAD` method, which is necessary for calculating the total download size and displaying the progress correctly.
-8.  **`totalBytes` Calculation:** The code now calculates the `totalBytes` before starting the download.
-9.  **`swHits` variable and console monitoring:** The code now monitors the console for service worker cache hits and displays a different message when the game is launching from local data.
-10. **Loading Bar Removal:** The loading bar is removed after the game is initialized.
-
-**How to Use:**
-
-1.  **Save the code:** Save the code as an HTML file (e.g., `index.html`).
-2.  **Place the files:** Make sure the `Build` folder and its contents (including the `.data`, `.wasm`, `.js`, and other Unity-generated files) are in the same directory as the HTML file.
-3.  **Service Worker:** Ensure you have a `sw.js` file in the same directory as your HTML file. This file is responsible for caching the game assets. (You can use a basic service worker for caching everything, or create a more advanced one.)
-4.  **Open in a Browser:** Open the `index.html` file in a web browser that supports WebGL.
-
-This revised code provides a much-improved loading experience with a progress bar and service worker integration. Let me know if you have any more questions.
