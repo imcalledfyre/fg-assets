@@ -1,4 +1,6 @@
+Okay, I've integrated the downloading progress and service worker implementation from the "Hollow Knight" example into your "Cuphead" code. Here's the modified code:
 
+```html
 <!DOCTYPE html>
 <html lang="en-us">
 
@@ -25,27 +27,77 @@
             display: none;
             background: #231F20;
         }
+
+        #unity-loading-bar {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 80%;
+            height: 20px;
+            background-color: #333;
+        }
+
+        #unity-progress-bar-empty {
+            width: 100%;
+            height: 100%;
+            background-color: #666;
+        }
+
+        #unity-progress-bar-full {
+            width: 0%;
+            height: 100%;
+            background-color: #4CAF50;
+        }
     </style>
 </head>
 
 <body>
-    <div id="loading-text" style="color: white; font-size: 48px; font-family: cursive; text-align: center; margin-top: 20px;"> LOADING... </div>
+    <div id="loading-text" style="color: white; font-size: 48px; font-family: cursive; text-align: center; margin-top: 20px;">
+        LOADING...
+    </div>
+    <div id="unity-loading-bar">
+        <div id="unity-progress-bar-empty">
+            <div id="unity-progress-bar-full"></div>
+        </div>
+    </div>
     <div id="unityContainer"></div>
     <script>
-if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('/sw.js') // note the leading slash
-        .then(() => console.log('Service worker active: caching everything for 30 days!'))
-        .catch(err => console.error('SW registration failed:', err));
-}
-</script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/sw.js') // note the leading slash
+                .then(() => console.log('Service worker active: caching everything for 30 days!'))
+                .catch(err => console.error('SW registration failed:', err));
+        }
+    </script>
 
     <script src="Build/UnityLoader.js"></script>
     <script>
         var loadingText = document.querySelector("#loading-text");
-    
+        var progressBarFull = document.querySelector("#unity-progress-bar-full");
         let totalBytes = 0;
         let loadedBytes = 0;
-    
+        let swHits = 0; // Track SW cache hits
+
+        // Monitor console for SW cache hits
+        const origLog = console.log;
+        console.log = (...args) => {
+            if (args.join(" ").includes("[SW] Cross-origin cache hit")) {
+                swHits++;
+            }
+            origLog.apply(console, args);
+        };
+
+        function formatMB(bytes) {
+            return (bytes / (1024 * 1024)).toFixed(2);
+        }
+
+        function formatETA(loaded, total, start) {
+            const elapsed = (performance.now() - start) / 1000;
+            const rate = loaded / elapsed;
+            const remaining = (total - loaded) / rate;
+            return remaining > 0 ? `${remaining.toFixed(1)}s` : "0s";
+        }
+
         async function getSize(url) {
             try {
                 const res = await fetch(url, { method: "HEAD" });
@@ -54,26 +106,31 @@ if ('serviceWorker' in navigator) {
                 return 0;
             }
         }
-    
-        async function fetchWithProgress(url) {
-            const response = await fetch(url);
-            const reader = response.body.getReader();
+
+        async function fetchWithProgress(url, startTime) {
+            const res = await fetch(url);
+            const reader = res.body.getReader();
             let chunks = [];
             let received = 0;
-    
+
             while (true) {
                 const { done, value } = await reader.read();
                 if (done) break;
                 received += value.length;
                 loadedBytes += value.length;
                 chunks.push(value);
-    
-                let mbDone = (loadedBytes / (1024 * 1024)).toFixed(2);
-                let mbTotal = '2127.52';
-                loadingText.textContent = `LOADING... ${mbDone} MB / ${mbTotal} MB`;
+
+                const mbDone = formatMB(loadedBytes);
+                const mbTotal = formatMB(totalBytes);
+                const percent = ((loadedBytes / totalBytes) * 100).toFixed(1);
+                const eta = formatETA(loadedBytes, totalBytes, startTime);
+                progressBarFull.style.width = percent + "%";
+                loadingText.textContent = (swHits > 5)
+                    ? `Launching from local data… ${mbDone} / ${mbTotal} MB (${percent}%) ETA ${eta}`
+                    : `Downloading… ${mbDone} / ${mbTotal} MB (${percent}%) ETA ${eta}`;
             }
-    
-            let fullBuffer = new Uint8Array(received);
+
+            const fullBuffer = new Uint8Array(received);
             let offset = 0;
             for (let chunk of chunks) {
                 fullBuffer.set(chunk, offset);
@@ -81,13 +138,12 @@ if ('serviceWorker' in navigator) {
             }
             return fullBuffer.buffer;
         }
-    
-        async function mergeFiles(fileParts) {
-            const buffers = await Promise.all(fileParts.map(part => fetchWithProgress(part)));
-            const mergedBlob = new Blob(buffers);
-            return URL.createObjectURL(mergedBlob);
+
+        async function mergeFiles(fileParts, startTime) {
+            const buffers = await Promise.all(fileParts.map(p => fetchWithProgress(p, startTime)));
+            return URL.createObjectURL(new Blob(buffers));
         }
-    
+
         function getParts(file, start, end) {
             let parts = [];
             for (let i = start; i <= end; i++) {
@@ -95,29 +151,30 @@ if ('serviceWorker' in navigator) {
             }
             return parts;
         }
-    
+
         function resizeUnityContainer() {
             var container = document.getElementById("unityContainer");
             container.style.width = window.innerWidth + "px";
             container.style.height = window.innerHeight + "px";
         }
-    
+
         (async () => {
             const allParts = [
                 ...getParts("Build/Build.asm.code.unityweb", 1, 3),
                 ...getParts("Build/Build.data.unityweb", 1, 102),
                 ...getParts("Build/Build.wasm.code.unityweb", 1, 2),
             ];
-    
+
             const sizes = await Promise.all(allParts.map(getSize));
             totalBytes = sizes.reduce((a, b) => a + b, 0);
-    
+
+            const startTime = performance.now();
             const [asmurl, dataUrl, wasmurl] = await Promise.all([
-                mergeFiles(getParts("Build/Build.asm.code.unityweb", 1, 3)),
-                mergeFiles(getParts("Build/Build.data.unityweb", 1, 102)),
-                mergeFiles(getParts("Build/Build.wasm.code.unityweb", 1, 2)),
+                mergeFiles(getParts("Build/Build.asm.code.unityweb", 1, 3), startTime),
+                mergeFiles(getParts("Build/Build.data.unityweb", 1, 102), startTime),
+                mergeFiles(getParts("Build/Build.wasm.code.unityweb", 1, 2), startTime),
             ]);
-    
+
             const json = {
                 "companyName": "SpanishFreddy",
                 "productName": "Cuphead",
@@ -133,21 +190,22 @@ if ('serviceWorker' in navigator) {
                 "splashScreenStyle": "Dark",
                 "backgroundColor": "#231F20"
             };
-    
+
             let blob = new Blob([JSON.stringify(json)], { type: "application/json" });
             let blobUrl = URL.createObjectURL(blob);
             window.addEventListener("resize", resizeUnityContainer);
-    
+
             UnityLoader.instantiate("unityContainer", json, {
                 url: blobUrl,
                 Module: {
                     onRuntimeInitialized: function () {
                         resizeUnityContainer();
                         document.querySelector("#loading-text").remove();
+                        document.querySelector("#unity-loading-bar").remove(); // Remove loading bar
                     },
                 },
             });
-    
+
             function resizeCanvas() {
                 var container = document.getElementById("unityContainer");
                 container.style.width = window.innerWidth + "px";
@@ -157,7 +215,30 @@ if ('serviceWorker' in navigator) {
             resizeCanvas();
         })();
     </script>
-    
+
 </body>
 
 </html>
+```
+
+**Key Changes and Explanations:**
+
+1.  **Progress Bar CSS:** Added CSS to create and style a progress bar.
+2.  **Progress Bar HTML:** Added HTML elements for the progress bar (`#unity-loading-bar`, `#unity-progress-bar-empty`, `#unity-progress-bar-full`).
+3.  **Loading Text and Progress Bar:** The code now updates the loading text with the download progress, and the progress bar visually indicates the download progress.
+4.  **`formatMB`, `formatETA` functions:** Added utility functions to format the download size in MB and calculate the estimated time remaining.
+5.  **`fetchWithProgress` function:** This function is the core of the progress tracking. It fetches the files, reads them in chunks, and updates the `loadedBytes` and the progress bar accordingly.
+6.  **`mergeFiles` function:** This function now takes a `startTime` argument and passes it to `fetchWithProgress`.
+7.  **`getSize` function:** This function gets the size of each file using the `HEAD` method, which is necessary for calculating the total download size and displaying the progress correctly.
+8.  **`totalBytes` Calculation:** The code now calculates the `totalBytes` before starting the download.
+9.  **`swHits` variable and console monitoring:** The code now monitors the console for service worker cache hits and displays a different message when the game is launching from local data.
+10. **Loading Bar Removal:** The loading bar is removed after the game is initialized.
+
+**How to Use:**
+
+1.  **Save the code:** Save the code as an HTML file (e.g., `index.html`).
+2.  **Place the files:** Make sure the `Build` folder and its contents (including the `.data`, `.wasm`, `.js`, and other Unity-generated files) are in the same directory as the HTML file.
+3.  **Service Worker:** Ensure you have a `sw.js` file in the same directory as your HTML file. This file is responsible for caching the game assets. (You can use a basic service worker for caching everything, or create a more advanced one.)
+4.  **Open in a Browser:** Open the `index.html` file in a web browser that supports WebGL.
+
+This revised code provides a much-improved loading experience with a progress bar and service worker integration. Let me know if you have any more questions.
