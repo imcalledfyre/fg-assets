@@ -1,10 +1,19 @@
 [
+    {
+    "id": -2,
+    "name": "GAME SUGGUSTIONS / REPORT BROKEN GAMES",
+    "cover": "idk",
+    "url": "https://forms.gle/2D3oR2L8bXdx2F5R9",
+    "author": "imcalledfyre",
+    "authorLink": "https://imcalledfyre.com"
+  },
   {
     "id": -1,
     "name": "Fyre Network (Fyrecraft)",
     "cover": "/fc.png",
     "url": "/fnlauncher.html"
   },
+  
   {
     "id": 0,
     "name": "Bowmasters",
