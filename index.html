@@ -8,6 +8,94 @@ if ('serviceWorker' in navigator) {
   });
 }
 </script>
+<script>
+(() => {
+  // ========= CONFIG (edit these) =========
+  const STORAGE_KEY = 'first_visit_seen_67'; // change to force re-show for everyone
+  const TITLE_TEXT  = 'Welcome to Nextara!';
+  const MESSAGE_HTML = `
+    <p style="margin:0 0 .5rem 0">This site is the new replacment for Fyre Games! This new version of the site has a lot more games and more features than tehe previous site.</p>
+    <p style="margin:0">and no, you cannot transfer data from old site to new site.</p>
+    <p>As always, this site is for educational purposes only and it's not the creators fault if you get bad grades due to this site, just please be responsible and do your work before playiing here lol</p>
+  `;
+  const CLOSE_TEXT = 'ok cool now let me just play games already';
+  // ======================================
+
+  // Reset helper for testing: add ?resetFirstVisit=1 to URL to clear
+  if (new URLSearchParams(location.search).get('resetFirstVisit') === '1') {
+    try { localStorage.removeItem(STORAGE_KEY); } catch(_) {}
+  }
+
+  // Bail if already seen or storage blocked
+  let seen = false;
+  try { seen = localStorage.getItem(STORAGE_KEY) === '1'; } catch(_) {}
+  if (seen) return;
+
+  // Create styles (scoped-ish)
+  const css = `
+  .fv-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);backdrop-filter:saturate(1.2) blur(2px);z-index:2147483000;display:flex;align-items:center;justify-content:center}
+  .fv-modal{width:min(560px,90vw);background:#111;color:#eee;border:1px solid #2a2a2a;border-radius:16px;box-shadow:0 10px 40px rgba(0,0,0,.6);font:14px/1.4 system-ui,Segoe UI,Roboto,Inter,Arial,sans-serif;overflow:hidden}
+  .fv-head{padding:16px 20px;background:#181818;border-bottom:1px solid #222;font-weight:700;font-size:16px}
+  .fv-body{padding:18px 20px}
+  .fv-actions{display:flex;gap:10px;justify-content:flex-end;padding:14px 20px;background:#141414;border-top:1px solid #222}
+  .fv-btn{appearance:none;border:0;border-radius:10px;padding:10px 14px;font-weight:600;cursor:pointer}
+  .fv-close{background:#5ee38a;color:#0a0a0a}
+  .fv-close:active{transform:translateY(1px)}
+  .fv-x{position:absolute;top:10px;right:10px;width:32px;height:32px;border-radius:8px;background:transparent;border:1px solid #2a2a2a;color:#aaa}
+  .fv-x:hover{background:#1a1a1a;color:#fff}
+  @media (prefers-color-scheme: light){
+    .fv-modal{background:#fff;color:#111;border-color:#e6e6e6}
+    .fv-head{background:#f6f6f6;border-bottom-color:#eaeaea}
+    .fv-actions{background:#fafafa;border-top-color:#eee}
+    .fv-x{border-color:#ddd;color:#555}
+    .fv-x:hover{background:#f0f0f0;color:#000}
+  }`;
+  const style = document.createElement('style');
+  style.setAttribute('data-fv', '1');
+  style.textContent = css;
+  document.head.appendChild(style);
+
+  // Build modal
+  const overlay = document.createElement('div');
+  overlay.className = 'fv-overlay';
+  overlay.setAttribute('role', 'dialog');
+  overlay.setAttribute('aria-modal', 'true');
+  overlay.innerHTML = `
+    <div class="fv-modal" role="document">
+      <button class="fv-x" aria-label="Close">&times;</button>
+      <div class="fv-head">${TITLE_TEXT}</div>
+      <div class="fv-body">${MESSAGE_HTML}</div>
+      <div class="fv-actions">
+        <button class="fv-btn fv-close">${CLOSE_TEXT}</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+
+  const closeBtn = overlay.querySelector('.fv-close');
+  const xBtn = overlay.querySelector('.fv-x');
+  const modal = overlay.querySelector('.fv-modal');
+
+  const close = () => {
+    try { localStorage.setItem(STORAGE_KEY, '1'); } catch(_) {}
+    overlay.remove();
+    style.remove();
+  };
+
+  // Close events
+  closeBtn.addEventListener('click', close);
+  xBtn.addEventListener('click', close);
+  overlay.addEventListener('click', (e) => {
+    if (!modal.contains(e.target)) close();
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') close();
+  });
+
+  // Focus the close button for accessibility
+  setTimeout(() => closeBtn.focus?.(), 0);
+})();
+</script>
 
 <head>
     <meta charset="UTF-8">
@@ -106,6 +194,7 @@ if ('serviceWorker' in navigator) {
     </script>
 </body>
 </html>
+
 
 
 
