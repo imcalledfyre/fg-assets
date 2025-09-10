@@ -1,190 +1,234 @@
 <!DOCTYPE html>
 <html lang="en">
-
-        <script>
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('/sw.js').then(() => {
-    console.log('Service worker active: caching everything except HTML for 14 days!');
-  });
-}
-</script>
-<script>
-(() => {
-  // ========= CONFIG (edit these) =========
-  const STORAGE_KEY = 'first_visit_seen_67'; // change to force re-show for everyone
-  const TITLE_TEXT  = 'Welcome to Nextara!';
-  const MESSAGE_HTML = `
-    <p style="margin:0 0 .5rem 0">This site is the new replacment for Fyre Games! This new version of the site has a lot more games and more features than tehe previous site.</p>
-    <p style="margin:0">and no, you cannot transfer data from old site to new site.</p>
-    <p>As always, this site is for educational purposes only and it's not the creators fault if you get bad grades due to this site, just please be responsible and do your work before playiing here lol</p>
-  `;
-  const CLOSE_TEXT = 'ok cool now let me just play games already';
-  // ======================================
-
-  // Reset helper for testing: add ?resetFirstVisit=1 to URL to clear
-  if (new URLSearchParams(location.search).get('resetFirstVisit') === '1') {
-    try { localStorage.removeItem(STORAGE_KEY); } catch(_) {}
-  }
-
-  // Bail if already seen or storage blocked
-  let seen = false;
-  try { seen = localStorage.getItem(STORAGE_KEY) === '1'; } catch(_) {}
-  if (seen) return;
-
-  // Create styles (scoped-ish)
-  const css = `
-  .fv-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);backdrop-filter:saturate(1.2) blur(2px);z-index:2147483000;display:flex;align-items:center;justify-content:center}
-  .fv-modal{width:min(560px,90vw);background:#111;color:#eee;border:1px solid #2a2a2a;border-radius:16px;box-shadow:0 10px 40px rgba(0,0,0,.6);font:14px/1.4 system-ui,Segoe UI,Roboto,Inter,Arial,sans-serif;overflow:hidden}
-  .fv-head{padding:16px 20px;background:#181818;border-bottom:1px solid #222;font-weight:700;font-size:16px}
-  .fv-body{padding:18px 20px}
-  .fv-actions{display:flex;gap:10px;justify-content:flex-end;padding:14px 20px;background:#141414;border-top:1px solid #222}
-  .fv-btn{appearance:none;border:0;border-radius:10px;padding:10px 14px;font-weight:600;cursor:pointer}
-  .fv-close{background:#5ee38a;color:#0a0a0a}
-  .fv-close:active{transform:translateY(1px)}
-  .fv-x{position:absolute;top:10px;right:10px;width:32px;height:32px;border-radius:8px;background:transparent;border:1px solid #2a2a2a;color:#aaa}
-  .fv-x:hover{background:#1a1a1a;color:#fff}
-  @media (prefers-color-scheme: light){
-    .fv-modal{background:#fff;color:#111;border-color:#e6e6e6}
-    .fv-head{background:#f6f6f6;border-bottom-color:#eaeaea}
-    .fv-actions{background:#fafafa;border-top-color:#eee}
-    .fv-x{border-color:#ddd;color:#555}
-    .fv-x:hover{background:#f0f0f0;color:#000}
-  }`;
-  const style = document.createElement('style');
-  style.setAttribute('data-fv', '1');
-  style.textContent = css;
-  document.head.appendChild(style);
-
-  // Build modal
-  const overlay = document.createElement('div');
-  overlay.className = 'fv-overlay';
-  overlay.setAttribute('role', 'dialog');
-  overlay.setAttribute('aria-modal', 'true');
-  overlay.innerHTML = `
-    <div class="fv-modal" role="document">
-      <button class="fv-x" aria-label="Close">&times;</button>
-      <div class="fv-head">${TITLE_TEXT}</div>
-      <div class="fv-body">${MESSAGE_HTML}</div>
-      <div class="fv-actions">
-        <button class="fv-btn fv-close">${CLOSE_TEXT}</button>
-      </div>
-    </div>
-  `;
-  document.body.appendChild(overlay);
-
-  const closeBtn = overlay.querySelector('.fv-close');
-  const xBtn = overlay.querySelector('.fv-x');
-  const modal = overlay.querySelector('.fv-modal');
-
-  const close = () => {
-    try { localStorage.setItem(STORAGE_KEY, '1'); } catch(_) {}
-    overlay.remove();
-    style.remove();
-  };
-
-  // Close events
-  closeBtn.addEventListener('click', close);
-  xBtn.addEventListener('click', close);
-  overlay.addEventListener('click', (e) => {
-    if (!modal.contains(e.target)) close();
-  });
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') close();
-  });
-
-  // Focus the close button for accessibility
-  setTimeout(() => closeBtn.focus?.(), 0);
-})();
-</script>
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Nextara | Games</title>
     
+    <script>
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/sw.js').then(() => {
+            console.log('Service worker active: caching everything except HTML for 14 days!');
+        });
+    }
+    </script>
+    <script>
+    (() => {
+        const STORAGE_KEY = 'first_visit_seen_67';
+        const TITLE_TEXT = 'Welcome to Nextara!';
+        const MESSAGE_HTML = `
+            <p style="margin:0 0 .5rem 0">This site is the new replacment for Fyre Games! This new version of the site has a lot more games and more features than tehe previous site.</p>
+            <p style="margin:0">and no, you cannot transfer data from old site to new site.</p>
+            <p>As always, this site is for educational purposes only and it's not the creators fault if you get bad grades due to this site, just please be responsible and do your work before playiing here lol</p>
+        `;
+        const CLOSE_TEXT = 'ok cool now let me just play games already';
+
+        if (new URLSearchParams(location.search).get('resetFirstVisit') === '1') {
+            try { localStorage.removeItem(STORAGE_KEY); } catch(_) {}
+        }
+        let seen = false;
+        try { seen = localStorage.getItem(STORAGE_KEY) === '1'; } catch(_) {}
+        if (seen) return;
+        
+        const css = `
+            .fv-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);backdrop-filter:saturate(1.2) blur(2px);z-index:2147483000;display:flex;align-items:center;justify-content:center}
+            .fv-modal{width:min(560px,90vw);background:#111;color:#eee;border:1px solid #2a2a2a;border-radius:16px;box-shadow:0 10px 40px rgba(0,0,0,.6);font:14px/1.4 system-ui,Segoe UI,Roboto,Inter,Arial,sans-serif;overflow:hidden}
+            .fv-head{padding:16px 20px;background:#181818;border-bottom:1px solid #222;font-weight:700;font-size:16px}
+            .fv-body{padding:18px 20px}
+            .fv-actions{display:flex;gap:10px;justify-content:flex-end;padding:14px 20px;background:#141414;border-top:1px solid #222}
+            .fv-btn{appearance:none;border:0;border-radius:10px;padding:10px 14px;font-weight:600;cursor:pointer}
+            .fv-close{background:#5ee38a;color:#0a0a0a}
+            .fv-close:active{transform:translateY(1px)}
+            .fv-x{position:absolute;top:10px;right:10px;width:32px;height:32px;border-radius:8px;background:transparent;border:1px solid #2a2a2a;color:#aaa}
+            .fv-x:hover{background:#1a1a1a;color:#fff}
+            @media (prefers-color-scheme: light){
+                .fv-modal{background:#fff;color:#111;border-color:#e6e6e6}
+                .fv-head{background:#f6f6f6;border-bottom-color:#eaeaea}
+                .fv-actions{background:#fafafa;border-top-color:#eee}
+                .fv-x{border-color:#ddd;color:#555}
+                .fv-x:hover{background:#f0f0f0;color:#000}
+            }`;
+        const style = document.createElement('style');
+        style.setAttribute('data-fv', '1');
+        style.textContent = css;
+        document.head.appendChild(style);
+
+        const overlay = document.createElement('div');
+        overlay.className = 'fv-overlay';
+        overlay.setAttribute('role', 'dialog');
+        overlay.setAttribute('aria-modal', 'true');
+        overlay.innerHTML = `
+            <div class="fv-modal" role="document">
+                <button class="fv-x" aria-label="Close">&times;</button>
+                <div class="fv-head">${TITLE_TEXT}</div>
+                <div class="fv-body">${MESSAGE_HTML}</div>
+                <div class="fv-actions">
+                    <button class="fv-btn fv-close">${CLOSE_TEXT}</button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(overlay);
+
+        const closeBtn = overlay.querySelector('.fv-close');
+        const xBtn = overlay.querySelector('.fv-x');
+        const modal = overlay.querySelector('.fv-modal');
+
+        const close = () => {
+            try { localStorage.setItem(STORAGE_KEY, '1'); } catch(_) {}
+            overlay.remove();
+            style.remove();
+        };
+
+        closeBtn.addEventListener('click', close);
+        xBtn.addEventListener('click', close);
+        overlay.addEventListener('click', (e) => {
+            if (!modal.contains(e.target)) close();
+        });
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') close();
+        });
+
+        setTimeout(() => closeBtn.focus?.(), 0);
+    })();
+    </script>
     <link rel="icon" type="image/png" href="favicon.png">
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
     <link rel="apple-touch-icon" href="/favicon.png">
     <link rel="stylesheet" href="style.css">
     <script>
-        window.addEventListener('beforeunload', function (event) {
-            event.preventDefault();
-            event.returnValue = '';
-            return 'Are you sure you want to leave? Your stuff won’t be saved.';
-        });
+    window.addEventListener('beforeunload', function (event) {
+        event.preventDefault();
+        event.returnValue = '';
+        return 'Are you sure you want to leave? Your stuff won’t be saved.';
+    });
     </script>
+    <style>
+        /* CSS to place the liquid glass canvas behind the content */
+        body {
+            /* Hide the default cursor as it will be replaced by a custom one */
+            cursor: none;
+            position: relative;
+        }
 
+        /* The container for the main content to sit on top of the canvas */
+        .content-container {
+            position: relative;
+            z-index: 10;
+        }
+
+        #bg-image {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            z-index: -2;
+            filter: grayscale(50%) brightness(50%); 
+        }
+
+        #liquid-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+
+        #custom-cursor {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 50px;
+            height: 50px;
+            border-radius: 9999px;
+            background-color: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            pointer-events: none;
+            z-index: 100;
+            transform: translate(-50%, -50%);
+            transition: transform 0.1s ease-out;
+        }
+
+    </style>
 </head>
-<body class="dark-mode">
-    <header>
-        <div class="header-content">
-            <div class="logo">Nextara | Update 1.1</div>
+<body>
+    <img id="bg-image" src="https://images.unsplash.com/photo-1558591710-4b4a1ae0f04d?q=80&w=1887&auto=format&fit=crop" alt="Background" crossorigin="anonymous">
+    <canvas id="liquid-canvas"></canvas>
+    <div id="custom-cursor"></div>
+
+    <div class="content-container">
+        <header>
+            <div class="header-content">
+                <div class="logo">Nextara | Update 1.1</div>
                 <p>if you have mr golovich pls tell him finn says hi!!</p>
                 <div id="sfc7zpysmn4m8p5pjqwk8uwt6a7dbjm7ylx"></div><script type="text/javascript" src="https://counter5.optistats.ovh/private/counter.js?c=7zpysmn4m8p5pjqwk8uwt6a7dbjm7ylx&down=async" async></script><br><a href="https://www.freecounterstat.com">website counter</a><noscript><a href="https://www.freecounterstat.com" title="website counter"><img src="https://counter5.optistats.ovh/private/freecounterstat.php?c=7zpysmn4m8p5pjqwk8uwt6a7dbjm7ylx" border="0" title="website counter" alt="website counter"></a></noscript>
-            <div class="search-container">
-                <input type="text" id="searchBar" placeholder="Search" oninput="filterZones()">
-                <select id="sortOptions" onchange="sortZones()">
-                    <option value="name">Name</option>
-                    <option value="id">ID (Date)</option>
-                    <option value="popular">Popular</option>
-                </select>
+                <div class="search-container">
+                    <input type="text" id="searchBar" placeholder="Search" oninput="filterZones()">
+                    <select id="sortOptions" onchange="sortZones()">
+                        <option value="name">Name</option>
+                        <option value="id">ID (Date)</option>
+                        <option value="popular">Popular</option>
+                    </select>
+                </div>
+                <div class="control-buttons">
+                    <button id="settings" style="background-color: var(--primary-color); color: white; border: none; border-radius: 4px; padding: 0.5rem 1rem; font-size: 16px; cursor: pointer;">Settings</button>
+                </div>
             </div>
-            <div class="control-buttons">
-                <button id="settings" style="background-color: var(--primary-color); color: white; border: none; border-radius: 4px; padding: 0.5rem 1rem; font-size: 16px; cursor: pointer;">Settings</button>
+        </header>
+
+        <main>
+            <details id="featuredZonesWrapper" open>
+                <summary id="allZonesSummary" style="font-size: 1.2rem; font-weight: bold; cursor: pointer;">Featured Zones</summary>
+                <div id="featuredZones" class="zone-container"></div>
+            </details>
+            <br><hr><br>
+            <details id="allZonesWrapper" open>
+                <summary id="allSummary" style="font-size: 1.2rem; font-weight: bold; cursor: pointer;">All Zones</summary>
+                <div id="container">Loading...</div>
+            </details>
+        </main>
+
+        <div id="zoneViewer">
+            <div class="zone-header">
+                <div class="zone-title">
+                    <h2 id="zoneName">zone</h2>
+                    <span id="zoneId" style="display: none;"></span>
+                    <a id="zoneAuthor" href="#" target="_blank">by Author</a>
+                </div>
+                <div class="zone-controls">
+                    <button onclick="fullscreenZone()">Fullscreen</button>
+                    <button onclick="aboutBlank()">Open in New Tab (beta)</button>
+                    <button onclick="closeZone()">Close</button>
+                </div>
+            </div>
+            <iframe id="zoneFrame"></iframe>
+        </div>
+
+        <div id="popupOverlay">
+            <div class="popup">
+                <div class="popup-header">
+                    <h3 id="popupTitle">Title</h3>
+                    <button id="popupClose" onclick="closePopup()">×</button>
+                </div>
+                <div id="popupBody">
+                    Content will be here
+                </div>
             </div>
         </div>
-    </header>
 
-    <main>
-        <details id="featuredZonesWrapper" open>
-            <summary id="allZonesSummary" style="font-size: 1.2rem; font-weight: bold; cursor: pointer;">Featured Zones</summary>
-            <div id="featuredZones" class="zone-container"></div>
-        </details>
-        <br><hr><br>
-        <details id="allZonesWrapper" open>
-            <summary id="allSummary" style="font-size: 1.2rem; font-weight: bold; cursor: pointer;">All Zones</summary>
-            <div id="container">Loading...</div>
-        </details>
-    </main>
-
-    <div id="zoneViewer">
-        <div class="zone-header">
-            <div class="zone-title">
-                <h2 id="zoneName">zone</h2>
-                <span id="zoneId" style="display: none;"></span>
-                <a id="zoneAuthor" href="#" target="_blank">by Author</a>
+        <footer>
+            <div class="footer-links">
+                <a href="#" onclick="showContact(); return false;">Contact</a>
+                <a href="#" onclick="loadPrivacy(); return false;">Privacy Policy</a>
+                <a href="javascript:saveData()">Export Data</a>
+                <a href="#" onclick="document.getElementById('importData').click(); return false;">Import Data</a>
+                <input type="file" id="importData" style="display: none;" onchange="loadData(event)">
             </div>
-            <div class="zone-controls">
-                <button onclick="fullscreenZone()">Fullscreen</button>
-                <button onclick="aboutBlank()">Open in New Tab (beta)</button>
-                <button onclick="closeZone()">Close</button>
-            </div>
-        </div>
-        <iframe id="zoneFrame"></iframe>
+        </footer>
     </div>
-
-    <div id="popupOverlay">
-        <div class="popup">
-            <div class="popup-header">
-                <h3 id="popupTitle">Title</h3>
-                <button id="popupClose" onclick="closePopup()">×</button>
-            </div>
-            <div id="popupBody">
-                Content will be here
-            </div>
-        </div>
-    </div>
-
-    <footer>
-        <div class="footer-links">
-            <a href="#" onclick="showContact(); return false;">Contact</a>
-            <a href="#" onclick="loadPrivacy(); return false;">Privacy Policy</a>
-            <a href="javascript:saveData()">Export Data</a>
-            <a href="#" onclick="document.getElementById('importData').click(); return false;">Import Data</a>
-            <input type="file" id="importData" style="display: none;" onchange="loadData(event)">
-        </div>
-    </footer>
-
+    
     <script src="script.js"></script>
     <script>
         const search = new URLSearchParams(window.location.search);
@@ -193,13 +237,102 @@ if ('serviceWorker' in navigator) {
             loadPrivacy();
         }
     </script>
+    
+    <script>
+        const canvas = document.getElementById('liquid-canvas');
+        const ctx = canvas.getContext('2d', { willReadFrequently: true });
+        const bgImage = document.getElementById('bg-image');
+        const customCursor = document.getElementById('custom-cursor');
+
+        let mouse = {
+            x: window.innerWidth / 2,
+            y: window.innerHeight / 2
+        };
+
+        const glassRadius = 120;
+        const blurAmount = 6;
+        const distortionStrength = 3.5;
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(bgImage, 0, 0, canvas.width, canvas.height);
+            
+            ctx.save();
+            ctx.beginPath();
+            ctx.arc(mouse.x, mouse.y, glassRadius, 0, Math.PI * 2);
+            ctx.clip(); 
+            ctx.filter = `blur(${blurAmount}px)`;
+            ctx.drawImage(bgImage, 0, 0, canvas.width, canvas.height);
+            ctx.filter = 'none';
+            
+            const imageData = ctx.getImageData(mouse.x - glassRadius, mouse.y - glassRadius, glassRadius * 2, glassRadius * 2);
+            const pixels = imageData.data;
+            const width = glassRadius * 2;
+            const height = glassRadius * 2;
+
+            for (let i = 0; i < pixels.length; i += 4) {
+                const x = (i / 4) % width;
+                const y = Math.floor((i / 4) / width);
+                const dx = x - glassRadius;
+                const dy = y - glassRadius;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                const displacement = Math.sin(distance / (glassRadius * 0.2)) * distortionStrength;
+                
+                const offsetX = Math.round(dx * displacement / glassRadius);
+                const offsetY = Math.round(dy * displacement / glassRadius);
+                
+                const sampleX = x + offsetX;
+                const sampleY = y + offsetY;
+                
+                if (sampleX >= 0 && sampleX < width && sampleY >= 0 && sampleY < height) {
+                    const sampleIndex = (sampleY * width + sampleX) * 4;
+                    pixels[i] = pixels[sampleIndex];
+                    pixels[i + 1] = pixels[sampleIndex + 1];
+                    pixels[i + 2] = pixels[sampleIndex + 2];
+                }
+            }
+            ctx.putImageData(imageData, mouse.x - glassRadius, mouse.y - glassRadius);
+            
+            const gradient = ctx.createRadialGradient(
+                mouse.x - glassRadius * 0.4, mouse.y - glassRadius * 0.4, 0,
+                mouse.x, mouse.y, glassRadius
+            );
+            gradient.addColorStop(0, 'rgba(255, 255, 255, 0.25)');
+            gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
+            
+            ctx.fillStyle = gradient;
+            ctx.fill();
+
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            ctx.restore();
+            requestAnimationFrame(draw);
+        }
+
+        window.addEventListener('resize', resizeCanvas);
+        window.addEventListener('mousemove', (e) => {
+            mouse.x = e.clientX;
+            mouse.y = e.clientY;
+            customCursor.style.transform = `translate(${e.clientX}px, ${e.clientY}px) translate(-50%, -50%)`;
+        });
+
+        if (bgImage.complete) {
+            resizeCanvas();
+            draw();
+        } else {
+            bgImage.onload = () => {
+                resizeCanvas();
+                draw();
+            };
+        }
+    </script>
+
 </body>
 </html>
-
-
-
-
-
-
-
-
