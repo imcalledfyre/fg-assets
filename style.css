@@ -1,570 +1,532 @@
-:root {
-    --primary: #007bff;
-    --primary-hover: #0099ff;
-    --primary-light: rgba(0, 123, 255, 0.15);
-    --primary-lighter: rgba(0, 123, 255, 0.08);
-    --accent: #da70d6;
-    --accent-light: rgba(218, 112, 214, 0.15);
-    --success: #34d399;
-    --warning: #fbbf24;
-    --text: #e0e0e0;
-    --text-muted: #a0a0a0;
-    --text-light: #6b6b6b;
-    --bg: #1c1c1c;
-    --bg-secondary: #282828;
-    --surface: #282a36;
-    --surface-hover: #3a3e4e;
-    --border: #3b3b3b;
-    --border-light: #4c4c4c;
-    --glass: rgba(40, 42, 54, 0.8);
-    --shadow-xs: 0 1px 2px 0 rgb(0 0 0 / 0.4);
-    --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.5), 0 1px 2px -1px rgb(0 0 0 / 0.5);
-    --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.5), 0 2px 4px -2px rgb(0 0 0 / 0.5);
-    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.6), 0 4px 6px -4px rgb(0 0 0 / 0.6);
-    --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.7), 0 8px 10px -6px rgb(0 0 0 / 0.7);
-    --shadow-glow: 0 0 20px rgba(0, 123, 255, 0.4);
-    --radius: 12px;
-    --radius-sm: 8px;
-    --radius-lg: 16px;
-    --radius-xl: 20px;
-    --gradient-primary: linear-gradient(135deg, #007bff 0%, #00b0ff 100%);
-    --gradient-accent: linear-gradient(135deg, #da70d6 0%, #8a2be2 100%);
-    --gradient-surface: linear-gradient(135deg, #282a36 0%, #3a3e4e 100%);
-}
-
-* {
-    box-sizing: border-box;
-}
-
-body {
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', system-ui, sans-serif;
-    line-height: 1.6;
-    margin: 0;
-    padding: 0;
-    background: var(--bg);
-    color: var(--text);
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    font-weight: 400;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-}
-
-header {
-    background: var(--gradient-primary);
-    color: white;
-    position: sticky;
-    top: 0;
-    z-index: 100;
-    box-shadow: var(--shadow-lg);
-    backdrop-filter: blur(20px);
-}
-
-.header-content {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 1.25rem 1rem;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 1.5rem;
-}
-
-.logo {
-    font-size: 1.75rem;
-    font-weight: 800;
-    letter-spacing: -0.02em;
-    background: linear-gradient(135deg, #ffffff 0%, rgba(255, 255, 255, 0.8) 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-}
-
-.search-container {
-    display: flex;
-    flex: 1;
-    max-width: 500px;
-    gap: 0.75rem;
-}
-
-#searchBar {
-    flex: 1;
-    padding: 0.875rem 1rem;
-    border: 0;
-    border-radius: var(--radius);
-    background: var(--glass);
-    backdrop-filter: blur(20px);
-    color: var(--text);
-    font-size: 15px;
-    outline: none;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: var(--shadow-sm);
-}
-
-#searchBar:focus {
-    background: var(--text);
-    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25), var(--shadow);
-    transform: translateY(-1px);
-    color: var(--glass);
-}
-
-#searchBar::placeholder {
-    color: var(--text-muted);
-}
-
-#sortOptions {
-    padding: 0.875rem 1rem;
-    border: 0;
-    border-radius: var(--radius);
-    background: var(--glass);
-    backdrop-filter: blur(20px);
-    color: var(--text-muted);
-    font-size: 15px;
-    cursor: pointer;
-    outline: none;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    min-width: 130px;
-    box-shadow: var(--shadow-sm);
-}
-
-#sortOptions:hover {
-    background: var(--text);
-    transform: translateY(-1px);
-    box-shadow: var(--shadow);
-    color: var(--glass);
-}
-
-.control-buttons {
-    display: flex;
-    gap: 0.5rem;
-}
-
-#settings {
-    background: rgba(255, 255, 255, 0.1);
-    border: 0;
-    color: white;
-    font-size: 1.2rem;
-    cursor: pointer;
-    padding: 0.75rem;
-    border-radius: var(--radius);
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    width: 44px;
-    height: 44px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    backdrop-filter: blur(20px);
-}
-
-#settings:hover {
-    background: rgba(255, 255, 255, 0.2);
-    transform: translateY(-1px);
-    box-shadow: var(--shadow);
-}
-
-main {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 2rem 1rem;
-}
-
-#zoneCount {
-    margin: 0 0 1.5rem;
-    font-size: 14px;
-    color: var(--text-muted);
-    font-weight: 600;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-
-#zoneCount::before {
-    content: '';
-    width: 4px;
-    height: 4px;
-    border-radius: 50%;
-    background: var(--primary);
-}
-
-#container,
-#featuredZones {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: 1.5rem;
-}
-
-.zone-item {
-    background: var(--gradient-surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-lg);
-    overflow: hidden;
-    cursor: pointer;
-    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    display: flex;
-    flex-direction: column;
-    position: relative;
-    box-shadow: var(--shadow-sm);
-}
-
-.zone-item:hover {
-    transform: translateY(-8px) scale(1.02);
-    box-shadow: var(--shadow-xl);
-    border-color: var(--primary);
-}
-
-.zone-item:hover::before {
-    opacity: 1;
-}
-
-.zone-item::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: var(--primary-light);
-    opacity: 0;
-    transition: opacity 0.4s ease;
-    pointer-events: none;
-    z-index: 1;
-}
-
-.zone-item img {
-    width: 100%;
-    aspect-ratio: 1;
-    object-fit: cover;
-    display: block;
-    background: var(--border-light);
-    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.zone-item:hover img {
-    transform: scale(1.05);
-}
-
-.zone-item button {
-    background: transparent;
-    color: var(--text);
-    border: 0;
-    padding: 1.25rem 1rem;
-    cursor: pointer;
-    font-weight: 600;
-    font-size: 14px;
-    line-height: 1.4;
-    text-align: center;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    min-height: 70px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    position: relative;
-    z-index: 2;
-}
-
-.zone-item:hover button {
-    color: var(--primary);
-    background: rgba(0, 123, 255, 0.05);
-}
-
-#zoneViewer {
-    position: fixed;
-    inset: 0;
-    background: var(--bg);
-    z-index: 1000;
-    display: none;
-    flex-direction: column;
-    animation: slideInUp 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-@keyframes slideInUp {
-    from {
-        transform: translateY(100%);
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nextara | Games</title>
+    
+    <script>
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/sw.js').then(() => {
+            console.log('Service worker active: caching everything except HTML for 14 days!');
+        });
     }
-    to {
-        transform: translateY(0);
-    }
-}
+    </script>
+    <script>
+    (() => {
+        const STORAGE_KEY = 'first_visit_seen_67';
+        const TITLE_TEXT = 'Welcome to Nextara!';
+        const MESSAGE_HTML = `
+            <p style="margin:0 0 .5rem 0">This site is the new replacment for Fyre Games! This new version of the site has a lot more games and more features than tehe previous site.</p>
+            <p style="margin:0">and no, you cannot transfer data from old site to new site.</p>
+            <p>As always, this site is for educational purposes only and it's not the creators fault if you get bad grades due to this site, just please be responsible and do your work before playiing here lol</p>
+        `;
+        const CLOSE_TEXT = 'ok cool now let me just play games already';
 
-.zone-header {
-    background: var(--gradient-primary);
-    color: white;
-    padding: 1rem 1.5rem;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    box-shadow: var(--shadow-lg);
-}
+        if (new URLSearchParams(location.search).get('resetFirstVisit') === '1') {
+            try { localStorage.removeItem(STORAGE_KEY); } catch(_) {}
+        }
+        let seen = false;
+        try { seen = localStorage.getItem(STORAGE_KEY) === '1'; } catch(_) {}
+        if (seen) return;
+        
+        const css = `
+            .fv-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);backdrop-filter:saturate(1.2) blur(2px);z-index:2147483000;display:flex;align-items:center;justify-content:center}
+            .fv-modal{width:min(560px,90vw);background:#111;color:#eee;border:1px solid #2a2a2a;border-radius:16px;box-shadow:0 10px 40px rgba(0,0,0,.6);font:14px/1.4 system-ui,Segoe UI,Roboto,Inter,Arial,sans-serif;overflow:hidden}
+            .fv-head{padding:16px 20px;background:#181818;border-bottom:1px solid #222;font-weight:700;font-size:16px}
+            .fv-body{padding:18px 20px}
+            .fv-actions{display:flex;gap:10px;justify-content:flex-end;padding:14px 20px;background:#141414;border-top:1px solid #222}
+            .fv-btn{appearance:none;border:0;border-radius:10px;padding:10px 14px;font-weight:600;cursor:pointer}
+            .fv-close{background:#5ee38a;color:#0a0a0a}
+            .fv-close:active{transform:translateY(1px)}
+            .fv-x{position:absolute;top:10px;right:10px;width:32px;height:32px;border-radius:8px;background:transparent;border:1px solid #2a2a2a;color:#aaa}
+            .fv-x:hover{background:#1a1a1a;color:#fff}
+            @media (prefers-color-scheme: light){
+                .fv-modal{background:#fff;color:#111;border-color:#e6e6e6}
+                .fv-head{background:#f6f6f6;border-bottom-color:#eaeaea}
+                .fv-actions{background:#fafafa;border-top-color:#eee}
+                .fv-x{border-color:#ddd;color:#555}
+                .fv-x:hover{background:#f0f0f0;color:#000}
+            }`;
+        const style = document.createElement('style');
+        style.setAttribute('data-fv', '1');
+        style.textContent = css;
+        document.head.appendChild(style);
 
-.zone-title {
-    flex: 1;
-    min-width: 0;
-}
+        const overlay = document.createElement('div');
+        overlay.className = 'fv-overlay';
+        overlay.setAttribute('role', 'dialog');
+        overlay.setAttribute('aria-modal', 'true');
+        overlay.innerHTML = `
+            <div class="fv-modal" role="document">
+                <button class="fv-x" aria-label="Close">&times;</button>
+                <div class="fv-head">${TITLE_TEXT}</div>
+                <div class="fv-body">${MESSAGE_HTML}</div>
+                <div class="fv-actions">
+                    <button class="fv-btn fv-close">${CLOSE_TEXT}</button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(overlay);
 
-#zoneName {
-    font-size: 1.25rem;
-    font-weight: 700;
-    margin: 0 0 0.25rem;
-    line-height: 1.3;
-}
+        const closeBtn = overlay.querySelector('.fv-close');
+        const xBtn = overlay.querySelector('.fv-x');
+        const modal = overlay.querySelector('.fv-modal');
 
-#zoneId {
-    display: none;
-}
+        const close = () => {
+            try { localStorage.setItem(STORAGE_KEY, '1'); } catch(_) {}
+            overlay.remove();
+            style.remove();
+        };
 
-#zoneAuthor {
-    font-size: 14px;
-    color: rgba(255, 255, 255, 0.8);
-    text-decoration: none;
-    transition: all 0.2s ease;
-    font-weight: 500;
-}
+        closeBtn.addEventListener('click', close);
+        xBtn.addEventListener('click', close);
+        overlay.addEventListener('click', (e) => {
+            if (!modal.contains(e.target)) close();
+        });
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') close();
+        });
 
-#zoneAuthor:hover {
-    color: white;
-    text-decoration: underline;
-}
+        setTimeout(() => closeBtn.focus?.(), 0);
+    })();
+    </script>
+    <link rel="icon" type="image/png" href="favicon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
+    <link rel="apple-touch-icon" href="/favicon.png">
+    <link rel="stylesheet" href="style.css">
+    <script>
+    window.addEventListener('beforeunload', function (event) {
+        event.preventDefault();
+        event.returnValue = '';
+        return 'Are you sure you want to leave? Your stuff won’t be saved.';
+    });
+    </script>
+    <style>
+        :root {
+            --primary: #007bff;
+            --primary-hover: #0099ff;
+            --primary-light: rgba(0, 123, 255, 0.15);
+            --primary-lighter: rgba(0, 123, 255, 0.08);
+            --accent: #da70d6;
+            --accent-light: rgba(218, 112, 214, 0.15);
+            --success: #34d399;
+            --warning: #fbbf24;
+            --text: #e0e0e0;
+            --text-muted: #a0a0a0;
+            --text-light: #6b6b6b;
+            --bg: #1c1c1c;
+            --bg-secondary: #282828;
+            --surface: #282a36;
+            --surface-hover: #3a3e4e;
+            --border: #3b3b3b;
+            --border-light: #4c4c4c;
+            --glass: rgba(40, 42, 54, 0.8);
+            --shadow-xs: 0 1px 2px 0 rgb(0 0 0 / 0.4);
+            --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.5), 0 1px 2px -1px rgb(0 0 0 / 0.5);
+            --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.5), 0 2px 4px -2px rgb(0 0 0 / 0.5);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.6), 0 4px 6px -4px rgb(0 0 0 / 0.6);
+            --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.7), 0 8px 10px -6px rgb(0 0 0 / 0.7);
+            --shadow-glow: 0 0 20px rgba(0, 123, 255, 0.4);
+            --radius: 12px;
+            --radius-sm: 8px;
+            --radius-lg: 16px;
+            --radius-xl: 20px;
+            --gradient-primary: linear-gradient(135deg, #007bff 0%, #00b0ff 100%);
+            --gradient-accent: linear-gradient(135deg, #da70d6 0%, #8a2be2 100%);
+            --gradient-surface: linear-gradient(135deg, #282a36 0%, #3a3e4e 100%);
+        }
 
-.zone-controls {
-    display: flex;
-    gap: 0.75rem;
-}
+        /* --- Liquid Glass CSS --- */
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', system-ui, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: var(--bg);
+            color: var(--text);
+            cursor: none;
+            position: relative;
+        }
+        .content-container {
+            position: relative;
+            z-index: 10;
+        }
+        #bg-image {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            z-index: -2;
+            filter: grayscale(50%) brightness(50%); 
+        }
+        #liquid-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+        #custom-cursor {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 50px;
+            height: 50px;
+            border-radius: 9999px;
+            background-color: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            pointer-events: none;
+            z-index: 100;
+            transform: translate(-50%, -50%);
+            transition: transform 0.1s ease-out;
+        }
 
-.zone-controls button {
-    background: rgba(255, 255, 255, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    color: white;
-    padding: 0.625rem 1rem;
-    border-radius: var(--radius);
-    cursor: pointer;
-    font-size: 14px;
-    font-weight: 600;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    backdrop-filter: blur(20px);
-}
+        /* --- Header CSS --- */
+        header {
+            background: rgba(28, 28, 28, 0.8);
+            backdrop-filter: blur(15px);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: var(--shadow-lg);
+            transition: transform 0.3s ease-in-out;
+        }
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 1rem 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1.5rem;
+        }
+        header.collapsed {
+            transform: translateY(-90%);
+        }
+        .collapse-toggle {
+            position: absolute;
+            bottom: 0;
+            right: 1.5rem;
+            transform: translateY(100%);
+            width: 50px;
+            height: 25px;
+            background: rgba(28, 28, 28, 0.8);
+            border: 1px solid var(--border);
+            border-top: none;
+            border-radius: 0 0 var(--radius) var(--radius);
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background 0.3s ease;
+            font-size: 1.5rem;
+            z-index: 101;
+            box-shadow: var(--shadow-sm);
+        }
+        .collapse-toggle:hover {
+            background: var(--bg-secondary);
+        }
+        .collapsed .collapse-toggle {
+            transform: translateY(100%) rotate(180deg);
+        }
 
-.zone-controls button:hover {
-    background: rgba(255, 255, 255, 0.2);
-    border-color: rgba(255, 255, 255, 0.5);
-    transform: translateY(-1px);
-    box-shadow: var(--shadow);
-}
+        /* --- Main Content CSS --- */
+        main {
+            padding: 2rem 1.5rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .zone-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 1.5rem;
+        }
+        .zone-item {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            box-shadow: var(--shadow-sm);
+            display: flex;
+            flex-direction: column;
+        }
+        .zone-item:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: var(--shadow-xl);
+            border-color: var(--primary);
+        }
+        .zone-item img {
+            width: 100%;
+            aspect-ratio: 16 / 9;
+            object-fit: cover;
+            display: block;
+        }
+        .zone-item button {
+            background: var(--surface);
+            color: var(--text);
+            border: 0;
+            padding: 1.25rem 1rem;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            text-align: center;
+            min-height: 70px;
+        }
+        .zone-item:hover button {
+            color: var(--primary);
+            background: var(--surface-hover);
+        }
 
-#zoneFrame {
-    flex-grow: 1;
-    border: none;
-    width: 90%;
-    height: 90%;
-}
+        /* --- Game Viewer CSS --- */
+        #zoneViewer {
+            position: fixed;
+            inset: 0;
+            z-index: 1000;
+            display: none;
+            flex-direction: column;
+            background: var(--bg-secondary);
+        }
+        .zone-header {
+            background: var(--surface-hover);
+            padding: 1rem 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: var(--shadow-lg);
+        }
+        #zoneFrame {
+            flex-grow: 1;
+            border: none;
+            width: 100%;
+            height: 100%;
+        }
 
-#popupOverlay {
-    position: fixed;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.6);
-    backdrop-filter: blur(8px);
-    display: none;
-    align-items: center;
-    justify-content: center;
-    z-index: 2000;
-    padding: 1rem;
-    animation: fadeIn 0.3s ease;
-}
+        /* --- Popups & Footer --- */
+        #popupOverlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(8px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+        }
+        .popup {
+            background: var(--surface);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-xl);
+            width: 90%;
+            max-width: 520px;
+            max-height: 80vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            border: 1px solid var(--border);
+        }
+        footer {
+            background: var(--bg-secondary);
+            border-top: 1px solid var(--border);
+            padding: 2rem 1rem;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <img id="bg-image" src="https://images.unsplash.com/photo-1558591710-4b4a1ae0f04d?q=80&w=1887&auto=format&fit=crop" alt="Background" crossorigin="anonymous">
+    <canvas id="liquid-canvas"></canvas>
+    <div id="custom-cursor"></div>
 
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-    }
-    to {
-        opacity: 1;
-    }
-}
+    <div class="content-container">
+        <header id="mainHeader">
+            <div class="header-content">
+                <div class="logo">Nextara | Update 1.1</div>
+                <div class="search-container">
+                    <input type="text" id="searchBar" placeholder="Search" oninput="filterZones()">
+                    <select id="sortOptions" onchange="sortZones()">
+                        <option value="name">Name</option>
+                        <option value="id">ID (Date)</option>
+                        <option value="popular">Popular</option>
+                    </select>
+                </div>
+                <div class="control-buttons">
+                    <button id="settings">⚙️</button>
+                </div>
+            </div>
+            <div id="collapseButton" class="collapse-toggle">v</div>
+        </header>
 
-.popup {
-    background: var(--surface);
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-xl);
-    width: 100%;
-    max-width: 520px;
-    max-height: 80vh;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-    border: 1px solid var(--border);
-    animation: slideInScale 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
+        <main>
+            <details id="featuredZonesWrapper" open>
+                <summary id="allZonesSummary">Featured Zones</summary>
+                <div id="featuredZones" class="zone-container"></div>
+            </details>
+            <br><hr><br>
+            <details id="allZonesWrapper" open>
+                <summary id="allSummary">All Zones</summary>
+                <div id="container">Loading...</div>
+            </details>
+        </main>
 
-@keyframes slideInScale {
-    from {
-        transform: scale(0.9) translateY(20px);
-        opacity: 0;
-    }
-    to {
-        transform: scale(1) translateY(0);
-        opacity: 1;
-    }
-}
+        <div id="zoneViewer">
+            <div class="zone-header">
+                <div class="zone-title">
+                    <h2 id="zoneName">zone</h2>
+                    <span id="zoneId" style="display: none;"></span>
+                    <a id="zoneAuthor" href="#" target="_blank">by Author</a>
+                </div>
+                <div class="zone-controls">
+                    <button onclick="fullscreenZone()">Fullscreen</button>
+                    <button onclick="aboutBlank()">Open in New Tab (beta)</button>
+                    <button onclick="closeZone()">Close</button>
+                </div>
+            </div>
+            <iframe id="zoneFrame"></iframe>
+        </div>
 
-.popup-header {
-    background: var(--gradient-primary);
-    color: white;
-    padding: 1.25rem 1.5rem;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
+        <div id="popupOverlay">
+            <div class="popup">
+                <div class="popup-header">
+                    <h3 id="popupTitle">Title</h3>
+                    <button id="popupClose" onclick="closePopup()">×</button>
+                </div>
+                <div id="popupBody">
+                    Content will be here
+                </div>
+            </div>
+        </div>
 
-#popupTitle {
-    margin: 0;
-    font-size: 1.25rem;
-    font-weight: 700;
-}
+        <footer>
+            <div class="footer-links">
+                <a href="#" onclick="showContact(); return false;">Contact</a>
+                <a href="#" onclick="loadPrivacy(); return false;">Privacy Policy</a>
+                <a href="javascript:saveData()">Export Data</a>
+                <a href="#" onclick="document.getElementById('importData').click(); return false;">Import Data</a>
+                <input type="file" id="importData" style="display: none;" onchange="loadData(event)">
+            </div>
+        </footer>
+    </div>
+    
+    <script src="script.js"></script>
+    <script>
+        const search = new URLSearchParams(window.location.search);
+        const privacy = search.get('privacy');
+        if (privacy) {
+            loadPrivacy();
+        }
 
-#popupClose {
-    background: rgba(255, 255, 255, 0.1);
-    border: 0;
-    color: white;
-    font-size: 1.25rem;
-    cursor: pointer;
-    padding: 0.5rem;
-    border-radius: var(--radius);
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    line-height: 1;
-    width: 36px;
-    height: 36px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    backdrop-filter: blur(20px);
-}
+        // --- JavaScript for the liquid glass effect ---
+        const canvas = document.getElementById('liquid-canvas');
+        const ctx = canvas.getContext('2d', { willReadFrequently: true });
+        const bgImage = document.getElementById('bg-image');
+        const customCursor = document.getElementById('custom-cursor');
 
-#popupClose:hover {
-    background: rgba(255, 255, 255, 0.2);
-    transform: scale(1.1);
-}
+        let mouse = {
+            x: window.innerWidth / 2,
+            y: window.innerHeight / 2
+        };
 
-#popupBody {
-    padding: 1.5rem;
-    overflow-y: auto;
-    color: var(--text);
-}
+        const glassRadius = 120;
+        const blurAmount = 6;
+        const distortionStrength = 3.5;
 
-#popupBody input[type="text"],
-#popupBody input[type="file"] {
-    width: 100%;
-    padding: 0.875rem 1rem;
-    margin-bottom: 1.25rem;
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    background: var(--bg-secondary);
-    color: var(--text);
-    font-size: 15px;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    outline: none;
-}
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
 
-#popupBody input[type="text"]:focus,
-#popupBody input[type="file"]:focus {
-    border-color: var(--primary);
-    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
-    transform: translateY(-1px);
-}
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(bgImage, 0, 0, canvas.width, canvas.height);
+            
+            ctx.save();
+            ctx.beginPath();
+            ctx.arc(mouse.x, mouse.y, glassRadius, 0, Math.PI * 2);
+            ctx.clip(); 
+            ctx.filter = `blur(${blurAmount}px)`;
+            ctx.drawImage(bgImage, 0, 0, canvas.width, canvas.height);
+            ctx.filter = 'none';
+            
+            const imageData = ctx.getImageData(mouse.x - glassRadius, mouse.y - glassRadius, glassRadius * 2, glassRadius * 2);
+            const pixels = imageData.data;
+            const width = glassRadius * 2;
+            const height = glassRadius * 2;
 
-#settings-button {
-    width: 100%;
-    padding: 0.875rem 1rem;
-    background: var(--gradient-primary);
-    color: white;
-    border: 0;
-    border-radius: var(--radius);
-    cursor: pointer;
-    font-size: 15px;
-    font-weight: 600;
-    margin-bottom: 1rem;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: var(--shadow-sm);
-}
+            for (let i = 0; i < pixels.length; i += 4) {
+                const x = (i / 4) % width;
+                const y = Math.floor((i / 4) / width);
+                const dx = x - glassRadius;
+                const dy = y - glassRadius;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                const displacement = Math.sin(distance / (glassRadius * 0.2)) * distortionStrength;
+                
+                const offsetX = Math.round(dx * displacement / glassRadius);
+                const offsetY = Math.round(dy * displacement / glassRadius);
+                
+                const sampleX = x + offsetX;
+                const sampleY = y + offsetY;
+                
+                if (sampleX >= 0 && sampleX < width && sampleY >= 0 && sampleY < height) {
+                    const sampleIndex = (sampleY * width + sampleX) * 4;
+                    pixels[i] = pixels[sampleIndex];
+                    pixels[i + 1] = pixels[sampleIndex + 1];
+                    pixels[i + 2] = pixels[sampleIndex + 2];
+                }
+            }
+            ctx.putImageData(imageData, mouse.x - glassRadius, mouse.y - glassRadius);
+            
+            const gradient = ctx.createRadialGradient(
+                mouse.x - glassRadius * 0.4, mouse.y - glassRadius * 0.4, 0,
+                mouse.x, mouse.y, glassRadius
+            );
+            gradient.addColorStop(0, 'rgba(255, 255, 255, 0.25)');
+            gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
+            
+            ctx.fillStyle = gradient;
+            ctx.fill();
 
-#settings-button:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-lg);
-}
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+            ctx.lineWidth = 2;
+            ctx.stroke();
 
-#settings-button:active {
-    transform: translateY(0);
-}
+            ctx.restore();
+            requestAnimationFrame(draw);
+        }
 
-footer {
-    background: var(--bg-secondary);
-    border-top: 1px solid var(--border);
-    padding: 2rem 1rem;
-    margin-top: 3rem;
-    text-align: center;
-}
+        window.addEventListener('resize', resizeCanvas);
+        window.addEventListener('mousemove', (e) => {
+            mouse.x = e.clientX;
+            mouse.y = e.clientY;
+            customCursor.style.transform = `translate(${e.clientX}px, ${e.clientY}px) translate(-50%, -50%)`;
+        });
 
-.footer-links {
-    display: flex;
-    justify-content: center;
-    gap: 2rem;
-    flex-wrap: wrap;
-}
+        if (bgImage.complete) {
+            resizeCanvas();
+            draw();
+        } else {
+            bgImage.onload = () => {
+                resizeCanvas();
+                draw();
+            };
+        }
 
-.footer-links a {
-    color: var(--primary);
-    text-decoration: none;
-    font-weight: 600;
-    font-size: 15px;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    padding: 0.5rem 1rem;
-    border-radius: var(--radius);
-}
-
-.footer-links a:hover {
-    color: var(--primary-hover);
-    background: var(--primary-light);
-    transform: translateY(-1px);
-}
-
-@media (max-width: 768px) {
-    .header-content {
-        flex-direction: column;
-        gap: 1rem;
-        padding: 1rem;
-    }
-
-    .search-container {
-        width: 100%;
-        max-width: none;
-    }
-
-    main {
-        padding: 1.5rem 1rem;
-    }
-
-    #container,
-    #featuredZones {
-        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-        gap: 1.25rem;
-    }
-
-    .zone-item button {
-        padding: 1rem 0.75rem;
-        min-height: 65px;
-        font-size: 13px;
-    }
-
-    .footer-links {
-        gap: 1.5rem;
-    }
-}
-
-@media (max-width: 480px) {
-    #container,
-    #featuredZones {
-        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-        gap: 1rem;
-    }
-
-    .popup {
-        margin: 0.5rem;
-    }
-
-    .zone-item:hover {
-        transform: translateY(-4px) scale(1.01);
-    }
-}
+        // --- JavaScript for the collapsible header ---
+        document.getElementById('collapseButton').addEventListener('click', function() {
+            const header = document.getElementById('mainHeader');
+            header.classList.toggle('collapsed');
+            if (header.classList.contains('collapsed')) {
+                this.textContent = 'v';
+            } else {
+                this.textContent = 'v';
+            }
+        });
+    </script>
+</body>
+</html>
